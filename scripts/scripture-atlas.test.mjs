@@ -72,5 +72,5 @@ test("Navigation and Vite build expose Scripture Atlas",()=>{
  assert.ok(read("daily-prayer.html").includes('href="scripture-atlas.html"'));
  assert.ok(read("src/App.jsx").includes('href="scripture-atlas.html"'));
  assert.ok(read("vite.config.js").includes("atlas: fileURLToPath"));
- assert.ok(read("README.md").includes("182 independently indexed features"));
+ assert.ok(read("README.md").includes("182 prioritised"));
 });
