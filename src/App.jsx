@@ -89,7 +89,7 @@ export default function App() {
   const [state, setState] = useState(loadState)
   const [date, setDate] = useState(todayKey())
   const [tab, setTab] = useState('today')
-  const [appearance, setAppearance] = useState(() => { try { return localStorage.getItem(APPEARANCE_KEY) === 'sanctuary' ? 'sanctuary' : 'original' } catch { return 'original' } })
+  const [appearance, setAppearance] = useState(() => { try { return ['sanctuary', 'uxpilot'].includes(localStorage.getItem(APPEARANCE_KEY)) ? localStorage.getItem(APPEARANCE_KEY) : 'original' } catch { return 'original' } })
 
   const entry = state.entries[date] || blankEntry(date)
 
@@ -132,15 +132,16 @@ export default function App() {
   }
 
   return (
-    <main className={appearance === 'sanctuary' ? 'sanctuary-theme' : ''}>
+    <main className={appearance === 'sanctuary' ? 'sanctuary-theme' : appearance === 'uxpilot' ? 'uxpilot-theme' : ''}>
       <section className="appearance-settings" aria-label="FaithHub settings">
-        <details><summary>Settings</summary><div className="appearance-options"><label htmlFor="faithhub-style">Appearance</label><select id="faithhub-style" value={appearance} onChange={(e) => setAppearance(e.target.value)}><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option></select><p>Changes the look, not your prayers, reflections or saved entries.</p></div></details>
+        <details><summary>Settings</summary><div className="appearance-options"><label htmlFor="faithhub-style">Appearance</label><select id="faithhub-style" value={appearance} onChange={(e) => setAppearance(e.target.value)}><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><p>Changes the look, not your prayers, reflections or saved entries.</p></div></details>
       </section>
+      {appearance === 'uxpilot' && <header className="uxpilot-header"><a href="./" aria-label="FaithHub home">FaithHub</a><div><button type="button" onClick={() => document.querySelector('.appearance-settings details')?.setAttribute('open', '')} aria-label="Open appearance settings">Settings</button><button type="button" onClick={() => document.querySelector('.toolbar')?.scrollIntoView({ behavior: 'smooth' })} aria-label="Go to navigation">Menu</button></div></header>}
       <section className="hero">
         <div>
           <p className="eyebrow">Rule of Life Companion</p>
-          <h1>{appearance === 'sanctuary' ? 'A quiet place to receive.' : 'Gentle formation, not spiritual scorekeeping.'}</h1>
-          <p className="lead">A quiet place to receive Scripture, pray through the day, reflect honestly, and notice where God’s grace is already at work.</p>
+          <h1>{appearance !== 'original' ? 'A quiet place to receive.' : 'Gentle formation, not spiritual scorekeeping.'}</h1>
+          <p className="lead">{appearance === 'uxpilot' ? "Gentle formation, not scorekeeping. Notice where God’s grace is at work." : "A quiet place to receive Scripture, pray through the day, reflect honestly, and notice where God’s grace is already at work."}</p>
         </div>
         <aside className="posture-card">
           <p>Today’s posture</p>
