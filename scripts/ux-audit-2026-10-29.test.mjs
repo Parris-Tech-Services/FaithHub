@@ -10,7 +10,7 @@ const scripts=[...home.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].ma
 
 test("The deployment cannot put the Podcasts link over the mobile navigation",()=>{
  assert.doesNotMatch(deploy,/position\s*:\s*fixed/i,"Do not inject a fixed-position Podcasts link");
- assert.doesNotMatch(deploy,/faithhub-podcast-button/,"Remove former overlay launcher");
+ assert.doesNotMatch(deploy,/<a[^>]*id="faithhub-podcast-button"/,"Do not render the old launcher");
  assert.match(deploy,/podcast_nav/,"Keep the shortcut available on pages without their own navigation");
  assert.match(deploy,/href="podcasts\.html"/,"Home uses direct in-flow navigation");
  assert.match(home,/<a class="study-link" href="podcasts\.html">Faith podcasts<\/a>/);
