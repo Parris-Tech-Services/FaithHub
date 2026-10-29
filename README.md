@@ -41,6 +41,12 @@ Your site should appear at:
 https://YOUR_USERNAME.github.io/rule-of-life-companion/
 ```
 
+## Prayer: four ways of talking with God
+
+- **[Open the interactive prayer practice](prayer-practice.html):** gratitude, lament, petition and intercession, with Scripture, original prayers and optional private notes. Prayer notes are only stored in this browser after the visitor deliberately saves them.
+- **[Read the source-linked theological research](docs/prayer/john-mark-comer-talking-with-god-2026-10-29.md)** (29 October 2026): primary sources, theological distinctions, practice and cautions. The original Practicing the Way material groups petition and intercession together under *talking with God*; these are not its four top-level prayer sessions.
+- Source: [Practicing the Way Prayer Practice](https://www.practicingtheway.org/prayer).
+
 ## Featured Scripture
 
 - [Luke 11:5–13 (NIV) — Ask, seek, knock](https://bible.com/bible/111/luk.11.5-13.NIV). This reading is included in the daily Scripture rotation and linked permanently from FaithHub's main page.
