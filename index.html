@@ -30,6 +30,10 @@
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    :is(button, a, input, textarea, select, summary):focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+    .skip-link { position: absolute; top: -120px; left: 12px; z-index: 999; padding: 12px 18px; border: 2px solid #000; background: #fff; color: #000; }
+    .skip-link:focus { top: 12px; }
 
     body {
       margin: 0;
@@ -115,20 +119,33 @@
 
     body.dark .meter span { background: var(--fg); }
 
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+    .toolbar { display: block; margin-bottom: 16px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .tabs button { min-height: 44px; }
+    .tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+    .tools > button { min-height: 44px; }
+    .date-control { display: grid; gap: 5px; font-size: .86rem; font-weight: 700; }
+    .date-control input { min-height: 44px; }
+    .resource-links { flex: 1 1 250px; min-width: min(100%, 250px); }
+    .resource-links summary { display: flex; align-items: center; min-height: 48px; padding: 9px 14px; border: 2px solid var(--border); border-radius: 14px; cursor: pointer; font-weight: 800; background: var(--card); color: var(--fg); }
+    .resource-links summary::before { content: '+ '; margin-right: 10px; }
+    .resource-links[open] summary::before { content: '− '; }
+    .resource-link-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin: 10px 0 0; }
+    .settings-slot { position: relative; display: inline-flex; flex: 0 0 auto; align-items: center; gap: 10px; min-height: 48px; }
+    .settings-label { color: var(--fg); font-weight: 700; font-size: .85rem; }
+    #parris-tools-launcher {
+      position: static !important; right: auto !important; bottom: auto !important;
+      width: 48px !important; height: 48px !important; min-width: 48px !important; min-height: 48px !important;
+      padding: 0 !important; opacity: 1 !important; background: var(--active-bg) !important;
+      color: var(--active-fg) !important; border: 2px solid var(--border) !important;
+      box-shadow: none !important; backdrop-filter: none !important;
+      font: 700 25px/1 system-ui,-apple-system,sans-serif !important;
     }
-
-    .tabs, .tools {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    #parris-tools-launcher:focus-visible { outline: 3px solid var(--fg) !important; outline-offset: 3px; }
+    #parris-tools-panel {
+      position: absolute !important; right: 0 !important; bottom: auto !important; top: calc(100% + 8px) !important;
+      max-width: calc(100vw - 32px) !important; z-index: 999 !important;
     }
-
     button, input, select, textarea, .study-link {
       font: inherit;
       border: 2px solid var(--border);
@@ -139,6 +156,9 @@
     }
 
     button { cursor: pointer; }
+    button, .study-link { min-height: 44px; }
+    button[aria-selected="true"] { background: var(--active-bg); color: var(--active-fg); }
+    .resource-link-grid .study-link { min-width: 0; text-align: center; justify-content: center; }
 
     .study-link {
       display: inline-flex;
@@ -226,18 +246,30 @@
     @media (max-width: 850px) {
       .hero, .grid { grid-template-columns: 1fr; }
       .rhythm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .toolbar, footer { align-items: stretch; flex-direction: column; }
+      footer { align-items: stretch; flex-direction: column; }
     }
 
     @media (max-width: 520px) {
       main { width: min(100% - 18px, 1080px); padding-top: 16px; }
       .rhythm-grid { grid-template-columns: 1fr; }
-      button, input, .study-link { width: 100%; }
-      .study-link { justify-content: center; }
+      .tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .tabs button { min-width: 0; width: 100%; padding: 10px 6px; }
+      .tools { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+      .tools > button { width: 100%; }
+      .resource-links, .date-control { grid-column: 1 / -1; min-width: 0; width: 100%; }
+      .resource-link-grid { grid-template-columns: 1fr; }
+      .resource-link-grid .study-link { width: 100%; }
+      .settings-slot { grid-column: 1 / -1; justify-content: flex-start; }
+      .date-control input { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .meter span { transition: none; }
     }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#app">Skip to daily content</a>
   <main>
     <section class="hero">
       <div>
@@ -253,23 +285,30 @@
       </aside>
     </section>
 
-    <section class="toolbar">
-      <div class="tabs" id="tabs"></div>
+    <nav class="toolbar" aria-label="Daily practice navigation">
+      <div class="tabs" id="tabs" role="tablist" aria-label="FaithHub daily areas"></div>
       <div class="tools">
+        <details class="resource-links">
+          <summary>Explore Scripture, prayer and learning</summary>
+          <div class="resource-link-grid">
         <a class="study-link" href="ab401a-genesis.html">Study AB401A · Genesis</a>
         <a class="study-link" href="prayer-library.html">Prayer &amp; Bible library</a>
         <a class="study-link" href="scripture-atlas.html">Scripture Atlas · Psalms &amp; Bible</a>
         <a class="study-link" href="daily-prayer.html">Pray with Jesus · Everyday prayer</a>
         <a class="study-link" href="prayer-practice.html">Prayer guide · Four ways</a>
         <a class="study-link" href="https://bible.com/bible/111/luk.11.5-13.NIV" target="_blank" rel="noopener noreferrer">Luke 11:5–13 · Ask, seek, knock</a>
-        <input type="date" id="date" />
+        <a class="study-link" href="podcasts.html">Faith podcasts</a>
+          </div>
+        </details>
+        <label class="date-control" for="date">Practice date<input type="date" id="date" /></label>
         <button id="todayBtn">Today</button>
         <button id="resetBtn">Reset</button>
         <button id="themeBtn" class="primary">Dark mode</button>
+        <div id="faithhub-tools-slot" class="settings-slot" aria-label="Parris app tools"><span class="settings-label">App settings</span></div>
       </div>
-    </section>
+    </nav>
 
-    <div id="app"></div>
+    <div id="app" role="tabpanel" aria-labelledby="tab-today" tabindex="0"></div>
 
     <footer>
       <span>Saved locally in this browser.</span>
@@ -281,7 +320,10 @@
   <script>
     const STORAGE = 'faithhub-rule-of-life-v2';
     const THEME_STORAGE = 'faithhub-theme';
-    const todayKey = () => new Date().toISOString().slice(0, 10);
+    const todayKey = () => {
+      const now = new Date();
+      return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    };
 
     const scriptures = [
       ['Matthew 11:28–30', 'Come to me, all you who are weary and burdened, and I will give you rest. Take my yoke upon you and learn from me…', 'Receive rest before you try to improve.'],
@@ -353,7 +395,7 @@
 
     function saveState() { localStorage.setItem(STORAGE, JSON.stringify(state)); }
     function entry() { return state.entries[date] || (state.entries[date] = blank(date)); }
-    function dayIndex() { return Math.abs(Math.floor(new Date(date + 'T00:00:00').getTime() / 86400000)); }
+    function dayIndex() { return Math.abs(Math.floor(Date.parse(date + 'T00:00:00Z') / 86400000)); }
     function esc(value = '') { return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;'); }
 
     function applyTheme() {
@@ -362,7 +404,7 @@
       localStorage.setItem(THEME_STORAGE, theme);
     }
 
-    function setReflection(key, value) { entry().reflection[key] = value; saveState(); render(); }
+    function setReflection(key, value) { entry().reflection[key] = value; saveState(); updateMeter(); }
     function setNested(section, key, value) { entry()[section][key] = value; saveState(); render(); }
     function toggleRhythm(id) { entry().rhythms[id] = !entry().rhythms[id]; saveState(); render(); }
 
@@ -376,7 +418,8 @@
     }
 
     function renderTabs() {
-      document.getElementById('tabs').innerHTML = tabs.map(([id, label]) => `<button class="${tab === id ? 'active' : ''}" data-tab="${id}">${label}</button>`).join('');
+      document.getElementById('tabs').innerHTML = tabs.map(([id, label]) => `<button id="tab-${id}" role="tab" type="button" aria-controls="app" aria-selected="${tab === id}" class="${tab === id ? 'active' : ''}" data-tab="${id}">${label}</button>`).join('');
+      document.getElementById('app').setAttribute('aria-labelledby', 'tab-' + tab);
     }
 
     function updateMeter() {
@@ -424,19 +467,70 @@
     }
 
     function bindEvents() {
-      document.querySelectorAll('[data-tab]').forEach(button => button.onclick = () => { tab = button.dataset.tab; render(); });
-      document.querySelectorAll('[data-rhythm]').forEach(button => button.onclick = () => toggleRhythm(button.dataset.rhythm));
+      document.querySelectorAll('[data-tab]').forEach(button => button.onclick = () => {
+        tab = button.dataset.tab;
+        render();
+        document.getElementById('tab-' + tab)?.focus();
+      });
+      document.getElementById('tabs').onkeydown = (event) => {
+        const current = tabs.findIndex(([id]) => id === tab);
+        const next = event.key === 'ArrowRight' ? (current + 1) % tabs.length
+          : event.key === 'ArrowLeft' ? (current + tabs.length - 1) % tabs.length
+          : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+        if (next < 0) return;
+        event.preventDefault();
+        tab = tabs[next][0];
+        render();
+        document.getElementById('tab-' + tab)?.focus();
+      };
+      document.querySelectorAll('[data-rhythm]').forEach(button => button.onclick = () => {
+        const id = button.dataset.rhythm;
+        toggleRhythm(id);
+        document.querySelector('[data-rhythm="' + id + '"]')?.focus();
+      });
       document.querySelectorAll('[data-ref]').forEach(element => element.oninput = () => setReflection(element.dataset.ref, element.value));
-      document.querySelectorAll('[data-check]').forEach(button => button.onclick = () => { const [section, key] = button.dataset.check.split(':'); setNested(section, key, !entry()[section][key]); });
-      document.querySelectorAll('[data-nested]').forEach(element => element.oninput = () => { const [section, key] = element.dataset.nested.split(':'); setNested(section, key, element.value); });
+      document.querySelectorAll('[data-check]').forEach(button => button.onclick = () => {
+        const source = button.dataset.check;
+        const [section, key] = source.split(':');
+        setNested(section, key, !entry()[section][key]);
+        document.querySelector('[data-check="' + source + '"]')?.focus();
+      });
+      document.querySelectorAll('[data-nested]').forEach(element => element.oninput = () => {
+        const [section, key] = element.dataset.nested.split(':');
+        entry()[section][key] = element.value;
+        saveState();
+      });
     }
 
     document.getElementById('date').onchange = event => { date = event.target.value; render(); };
     document.getElementById('todayBtn').onclick = () => { date = todayKey(); render(); };
-    document.getElementById('resetBtn').onclick = () => { state.entries[date] = blank(date); saveState(); render(); };
+    document.getElementById('resetBtn').onclick = () => {
+      if (!window.confirm('Delete all saved rhythms and reflections for ' + date + '? This cannot be undone.')) return;
+      state.entries[date] = blank(date);
+      saveState();
+      render();
+    };
     document.getElementById('themeBtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); };
 
     render();
+  </script>
+  <script>
+    // Keep the shared Parris tools available, but move its launcher into the normal toolbar.
+    // The shared script still owns the settings URL, preferences, menu and event handlers.
+    (() => {
+      const slot = document.getElementById('faithhub-tools-slot');
+      if (!slot || !('MutationObserver' in window)) return;
+      const dock = () => {
+        for (const id of ['parris-tools-panel', 'parris-tools-launcher']) {
+          const element = document.getElementById(id);
+          if (element && element.parentElement !== slot) slot.appendChild(element);
+        }
+      };
+      const observer = new MutationObserver(dock);
+      observer.observe(document.body, { childList: true });
+      dock();
+      window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+    })();
   </script>
   <script src="https://parris-tech-services.github.io/WhirringWilderness/network/parris-network.js?v=2.1"></script>
 </body>
