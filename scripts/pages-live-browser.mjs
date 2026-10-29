@@ -75,11 +75,15 @@ try {
     }catch(err){
       lastError=err;
       await context.close();
-      if(attempt<6){
-        // Pages CDN can lag behind successful publish by several seconds.
-        console.log('Attempt '+attempt+': '+String(err.message).slice(0,200)+'; retrying deployed propagation.');
-        await new Promise(resolve=>setTimeout(resolve,8000));
-      }
+      const reason = String(err?.message || err);
+      // Retry transient networking or actual post-deploy SHA propagation only.
+      // A broken element or assertion in PR smoke is a defect, not a reason
+      // to waste six browser sessions before reporting the real failure.
+      const retryable = /net::|ERR_CONNECTION|ERR_NAME_NOT_RESOLVED/i.test(reason) ||
+        (Boolean(EXPECTED) && /not the verified deployment SHA yet/i.test(reason));
+      if (!retryable || attempt === 6) throw err;
+      console.log('Attempt '+attempt+': '+reason.slice(0,220)+'; retrying a transient condition.');
+      await new Promise(resolve=>setTimeout(resolve,8000));
     }
   }
   if(lastError)throw lastError;
