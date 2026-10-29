@@ -61,9 +61,16 @@ try {
   const width = await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:window.innerWidth}));
   assert.ok(width.scroll <= width.viewport+1,'No horizontal overflow at mobile viewport: '+JSON.stringify(width));
 
-  await page.getByRole('button',{name:/I need rest/}).focus();
-  const outline=await page.getByRole('button',{name:/I need rest/}).evaluate(el=>getComputedStyle(el).outlineStyle);
-  assert.notEqual(outline,'none','Keyboard focus indicator must exist');
+  // CSS :focus-visible is intentionally modality-aware. Use a genuine
+  // keyboard Tab rather than element.focus() after a pointer click.
+  await page.keyboard.press('Tab');
+  const focus = await page.evaluate(() => ({
+    visible: document.activeElement?.matches(':focus-visible'),
+    outline: getComputedStyle(document.activeElement).outlineStyle,
+    element: document.activeElement?.tagName,
+  }));
+  assert.ok(focus.visible && focus.outline !== 'none',
+    'Keyboard Tab must reveal a visible focus indicator: '+JSON.stringify(focus));
 
   await page.screenshot({path:'psalms-mobile-qa.png',fullPage:true});
   await context.close();
