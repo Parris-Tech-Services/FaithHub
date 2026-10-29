@@ -22,6 +22,13 @@ try {
       assert.equal(home?.status(),200,'Real FaithHub home must load');
       const homeMarker=await page.locator('meta[name="faithhub-deploy-sha"]').getAttribute('content').catch(()=>null);
       if(EXPECTED) assert.equal(homeMarker,EXPECTED,'Public homepage is not the verified deployment SHA yet');
+      if (!EXPECTED) {
+        // PR preview exercises the CURRENT deployed site, whose resource links
+        // may still be inside a closed details menu. It cannot assert that the
+        // PR's newly visible hero shortcut is already public.
+        const collapsed = page.locator('details.resource-links > summary');
+        await collapsed.click();
+      }
       const psalmsLink=page.getByRole('link',{name:/Explore Scripture .* Psalms/i}).first();
       await psalmsLink.waitFor({timeout:18000});
       await psalmsLink.click();
