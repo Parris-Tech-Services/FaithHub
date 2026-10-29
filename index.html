@@ -284,10 +284,43 @@ body.style-editorial .card{border-radius:24px}
 body.style-editorial .toolbar{border-radius:18px}
 body:is(.style-sanctuary,.style-editorial) :is(button,select,a,summary):focus-visible{outline:3px solid #547d65;outline-offset:3px}
 @media(max-width:760px){body.style-editorial .hero{grid-template-columns:1fr;padding:28px 20px}body.style-editorial h1{font-size:clamp(2.5rem,10vw,4rem)}}
+
+/* Mobile UX repair: compact, legible settings, theme-aware popover, quiet editorial hero. */
+.appearance-settings{justify-content:flex-end;margin-bottom:16px}
+.appearance-settings details{max-width:100%}
+.appearance-settings summary{font-size:clamp(.85rem,3.6vw,1rem);padding:10px 14px;min-height:44px;display:flex;align-items:center;gap:8px}
+.appearance-options{width:min(340px,calc(100vw - 32px));max-width:calc(100vw - 32px);background:var(--card);color:var(--fg);border:2px solid var(--border);box-shadow:0 12px 30px #0002}
+.appearance-options label,.appearance-options p{color:var(--fg)}
+.appearance-options select{background:var(--button-bg);color:var(--button-fg);border:2px solid var(--border);min-height:48px}
+body.dark .appearance-options{background:#151515;color:#fff}
+body.dark .appearance-options select{background:#151515;color:#fff;border-color:#ddd}
+body.dark .appearance-options p{color:#ddd}
+body.style-editorial.dark,body.style-sanctuary.dark{--bg:#101813;--fg:#edf4e9;--muted:#d3ddce;--card:#1c2a20;--border:#526553;--button-bg:#1c2a20;--button-fg:#edf4e9;--active-bg:#dbe9d5;--active-fg:#17271c}
+body.style-editorial.dark .hero{background:#1c2a20}
+body.style-editorial .hero{display:block;max-width:100%;padding:clamp(28px,6vw,68px);min-height:0}
+body.style-editorial .hero::before{content:'FaithHub';display:block;font:700 clamp(1.35rem,3vw,1.85rem)/1.3 Georgia,serif;margin-bottom:clamp(35px,7vw,80px)}
+body.style-editorial .hero .eyebrow{font-size:.7rem;letter-spacing:.19em}
+body.style-editorial .hero h1{font-size:0;line-height:1;margin:22px 0}
+body.style-editorial .hero h1::before{content:'A quiet place';display:block;font:400 clamp(2.65rem,7vw,5.7rem)/1.12 Georgia,serif;letter-spacing:-.045em}
+body.style-editorial .hero h1::after{content:'to receive.';display:block;font:italic 400 clamp(2.65rem,7vw,5.7rem)/1.12 Georgia,serif;letter-spacing:-.045em}
+body.style-editorial .hero .lead{max-width:680px;line-height:1.65}
+body.style-editorial .hero .posture{margin-top:34px;max-width:680px}
+@media(max-width:520px){
+ main{width:calc(100% - 28px)}
+ .appearance-settings summary{font-size:.86rem;padding:10px 12px}
+ .appearance-options{position:absolute;right:0;top:calc(100% + 8px);padding:16px}
+ .hero,.toolbar,.card,footer{padding:16px}
+ .hero h1{overflow-wrap:anywhere}
+ body.style-editorial .hero{padding:28px 20px}
+ body.style-editorial .hero::before{margin-bottom:40px}
+ body.style-editorial .hero .posture{margin-top:28px}
+ .resource-link-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.meter span{transition:none}}
 </style></head>
 <body>
   <a class="skip-link" href="#app">Skip to daily content</a>
-  <main><section class="appearance-settings" aria-label="FaithHub settings"><details><summary>Settings · Appearance</summary><div class="appearance-options"><label for="faithhub-style">Visual style</label><select id="faithhub-style"><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><p>Your prayer and reflection entries stay unchanged.</p></div></details></section>
+  <main><section class="appearance-settings" aria-label="FaithHub settings"><details id="appearance-details"><summary>Appearance</summary><div class="appearance-options"><label for="faithhub-style">Visual style</label><select id="faithhub-style"><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><p>Your prayer and reflection entries stay unchanged.</p></div></details></section>
     <section class="hero">
       <div>
         <p class="eyebrow">FaithHub / Rule of Life Companion</p>
@@ -540,7 +573,7 @@ body:is(.style-sanctuary,.style-editorial) :is(button,select,a,summary):focus-vi
       appearanceSelect.value = selected;
       localStorage.setItem(APPEARANCE_STORAGE, selected);
     }
-    appearanceSelect.addEventListener('change', event => applyAppearance(event.target.value));
+    appearanceSelect.addEventListener('change', event => { applyAppearance(event.target.value); document.getElementById('appearance-details').open = false; });
     applyAppearance(localStorage.getItem(APPEARANCE_STORAGE) || 'original');
     render();
   </script>
