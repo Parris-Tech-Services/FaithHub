@@ -1,0 +1,113 @@
+name: AgentWitness actual FaithHub acceptance
+# This runs on EVERY PR and main push, not only when a verifier file changes.
+# It is additive to Pages deployment and browser UX workflows.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: faithhub-witness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  witnessed-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout the exact FaithHub commit being evaluated
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout pinned AgentWitness code (unprivileged, test-only)
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/AgentCheck
+          ref: 4d7746d664e4c2d75e64a8436df0bc9b7c9dfc9e
+          path: .external_verifiers/agentcheck
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test-only dependencies
+        run: |
+          python -m pip install -e .external_verifiers/agentcheck pytest
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+          echo '.external_verifiers/' >> .git/info/exclude
+      - name: Freeze the actual application acceptance contract BEFORE testing
+        shell: bash
+        run: |
+          mkdir -p .agentwitness
+          cat >.agentwitness/faithhub-contract.yaml <<'YAML'
+          task_id: faithhub-live-app-ci
+          session_id: faithhub-live-app-ci
+          title: FaithHub real application source, Chromium and build acceptance
+          requirements:
+            - requirement_id: full-witnessed-app-tests
+              type: tests_pass
+              parameters:
+                minimum_collected: 3
+                require_fresh: true
+            - requirement_id: no-policy-violations
+              type: no_policy_violations
+          YAML
+          aw task create .agentwitness/faithhub-contract.yaml
+      - name: Negative control — cannot claim success before observed tests
+        shell: bash
+        run: |
+          set +e
+          aw task verify faithhub-live-app-ci > /tmp/faithhub-preflight.txt 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 1 ] || ! grep -q 'NOT DONE' /tmp/faithhub-preflight.txt; then
+            echo 'FAIL: witness did not explicitly deny empty pre-test acceptance'
+            exit 1
+          fi
+      - name: Run ACTUAL FaithHub Node, Chromium mobile/desktop and production build inside brokered pytest
+        run: aw run --session-id faithhub-live-app-ci -- pytest -q
+      - name: Verify contract and evidenced completion claim
+        run: |
+          aw task verify faithhub-live-app-ci
+          aw final --session-id faithhub-live-app-ci --task-id faithhub-live-app-ci "tests passed"
+      - name: Verify receipt chain and publish a limited CI receipt
+        shell: bash
+        env:
+          GH_HEAD_SHA: ${{ github.sha }}
+          GH_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from agentwitness.ledger import Ledger
+          from agentwitness.models import Provenance
+          ledger = Ledger(Path(".agentwitness/receipts.jsonl"))
+          assert ledger.verify_chain(), "Witnessed ledger integrity failed"
+          receipts = [r for r in ledger.read_all() if r.session_id=="faithhub-live-app-ci"]
+          proof = [r for r in receipts if r.provenance==Provenance.BROKER_WITNESSED and
+                   any((x.get("type") if isinstance(x,dict) else getattr(x,"type",None))=="pytest"
+                       for x in r.environmental_evidence)]
+          assert len(proof)==1, "Expected exactly one genuine broker-witnessed pytest invocation"
+          out={"source_sha":os.environ["GH_HEAD_SHA"],"run_url":os.environ["GH_RUN_URL"],
+               "witness_chain_valid":True,"real_brokered_pytest_receipts":len(proof),
+               "test_scope":"FaithHub node suites, Chromium UX and Vite production build",
+               "production_pages_deploy":"NOT VERIFIED BY THIS WORKFLOW",
+               "protected_windows_notary":"NOT USED"}
+          Path("/tmp/faithhub-acceptance-evidence.json").write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
+      - name: Upload redacted evidence only (never signing keys or ledgers)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: faithhub-agentwitness-${{ github.run_id }}
+          path: /tmp/faithhub-acceptance-evidence.json
+          if-no-files-found: error
+          retention-days: 7
