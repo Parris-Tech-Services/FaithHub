@@ -473,7 +473,8 @@
         document.getElementById('tab-' + tab)?.focus();
       });
       document.getElementById('tabs').onkeydown = (event) => {
-        const current = tabs.findIndex(([id]) => id === tab);
+        const focused = tabs.findIndex(([id]) => id === event.target?.dataset?.tab);
+        const current = focused >= 0 ? focused : tabs.findIndex(([id]) => id === tab);
         const next = event.key === 'ArrowRight' ? (current + 1) % tabs.length
           : event.key === 'ArrowLeft' ? (current + tabs.length - 1) % tabs.length
           : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
