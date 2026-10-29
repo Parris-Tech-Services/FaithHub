@@ -323,6 +323,17 @@ body.style-editorial .hero .posture{margin-top:34px;max-width:680px}
  body.style-editorial .hero .posture{margin-top:28px}
  .resource-link-grid{grid-template-columns:1fr}
 }
+/* Rhythm cards: explicit contrast in every appearance and light/dark combination. */
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm,
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active{
+  background:var(--card);color:var(--fg);border:2px solid var(--border);
+  min-height:0;display:flex;flex-direction:column;gap:6px;padding:18px;
+}
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm :is(strong,small,p){color:var(--fg);opacity:1}
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm small{color:var(--muted)}
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm p{margin:0;line-height:1.5}
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active{border-color:var(--fg);box-shadow:inset 0 0 0 2px var(--border)}
+body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{content:'Received';display:block;font-size:.75rem;font-weight:700;color:var(--fg);margin-top:8px}
 @media(prefers-reduced-motion:reduce){.meter span{transition:none}}
 </style></head>
 <body>
