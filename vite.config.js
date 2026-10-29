@@ -6,7 +6,7 @@ const podcastDock = {
   name: 'josh-podcast-dock',
   transformIndexHtml(html, ctx) {
     // Keep sensitive prayer reflections free of third-party launchers.
-    if ((ctx.path?.includes('prayer-practice.html') || ctx.path?.includes('daily-prayer.html'))) return []
+    if ((ctx.path?.includes('prayer-practice.html') || ctx.path?.includes('daily-prayer.html') || ctx.path?.includes('prayer-library.html'))) return []
     return [{
       tag: 'script',
       attrs: {
@@ -31,6 +31,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        library: fileURLToPath(new URL('./prayer-library.html', import.meta.url)),
         daily: fileURLToPath(new URL('./daily-prayer.html', import.meta.url)),
         podcasts: fileURLToPath(new URL('./podcasts.html', import.meta.url)),
         prayer: fileURLToPath(new URL('./prayer-practice.html', import.meta.url)),

@@ -69,3 +69,9 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 The live GitHub Pages workflow publishes the root HTML and assets directly; no npm build is needed for that deployment. Test with `node --test scripts/*.test.mjs`; preview that exact path with `python3 -m http.server 8765`. The Vite/React path is secondary.
 
 [Research, privacy, recovery and known limitations](docs/prayer/daily-prayer-research.md). No website background notification service is implemented: import the calendar file and check calendar notifications, or use a phone alarm.
+
+## Faithful feature roadmap and prayer library
+
+- [Numbered 100-feature roadmap](docs/FAITHHUB_FEATURE_ROADMAP.md): official app research, biblical grounding, acceptance conditions, priorities and honest implementation status.
+- [Prayer and Bible library](prayer-library.html): 12 guided practices, a seven-reading Gospel journey and four family prayer moments. Search by theme or Scripture; expand one practice and begin.
+- Tests: `node --test scripts/*.test.mjs`. The new library does not change or migrate existing saved data.

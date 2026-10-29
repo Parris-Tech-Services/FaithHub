@@ -195,7 +195,7 @@ export default function App() {
 
       {tab === 'prayer' && (
         <section className="grid two">
-          <article className="card wide"><p className="eyebrow">Talking with God</p><h2>Thankfulness, lament, petition and intercession</h2><p>Four honest ways to pray, in whichever order suits today. No performance or pressure.</p><a href="prayer-practice.html">Open the guided prayer practice</a><p><a href="daily-prayer.html">Everyday prayer, reminders and my resource shelf</a></p></article>
+          <article className="card wide"><p className="eyebrow">Talking with God</p><h2>Thankfulness, lament, petition and intercession</h2><p>Four honest ways to pray, in whichever order suits today. No performance or pressure.</p><a href="prayer-practice.html">Open the guided prayer practice</a><p><a href="prayer-library.html">Prayer and Bible library</a><br/><a href="daily-prayer.html">Everyday prayer, reminders and my resource shelf</a></p></article>
           {rhythms.map((rhythm) => (
             <article className="card" key={rhythm.id}>
               <p className="icon">{rhythm.icon}</p>
