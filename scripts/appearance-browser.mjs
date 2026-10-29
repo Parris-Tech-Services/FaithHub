@@ -14,7 +14,7 @@ try {
   const selector=page.locator('#faithhub-style');
   for(const [value,cls] of [['original',''],['sanctuary','sanctuary-theme'],['uxpilot','uxpilot-theme']]){
    await selector.selectOption(value);assert.equal(await selector.inputValue(),value);
-   if(cls)assert.equal(await page.locator('main').evaluate((el,c)=>el.classList.contains(c),cls),true);
+   if(cls)assert.equal(await page.locator('body').evaluate((el,c)=>el.classList.contains(c === 'sanctuary-theme' ? 'style-sanctuary' : 'style-editorial'),cls),true);
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
    assert.ok(overflow<=2,`Horizontal overflow ${overflow}px at ${width}px in ${value}`);
   }
