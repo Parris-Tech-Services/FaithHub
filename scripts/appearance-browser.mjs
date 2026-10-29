@@ -26,6 +26,15 @@ try {
   await page.locator('#themeBtn').click();
   assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('dark')),true);
   assert.equal(await page.locator('.appearance-options').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(21, 21, 21)');
+  await page.locator('.appearance-settings summary').click();
+  await page.locator('#faithhub-style').selectOption('sanctuary');
+  const contrast = await page.locator('.hero h1').evaluate(el => {
+    const fg=getComputedStyle(el).color;
+    const bg=getComputedStyle(el.closest('.hero')).backgroundImage;
+    return {fg,bg};
+  });
+  assert.equal(contrast.fg,'rgb(237, 244, 233)','Sanctuary dark heading must be light');
+  assert.ok(contrast.bg.includes('rgb(28, 42, 32)') && !contrast.bg.includes('rgb(254, 252, 246)'), 'Sanctuary dark hero must not use pale gradient');
   assert.equal(errors.length,0,errors.join('; '));
   await page.screenshot({path:`faithhub-${width}.png`,fullPage:true});
   await context.close();
