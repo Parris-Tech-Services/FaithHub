@@ -136,7 +136,7 @@ export const PASSAGES=rows.map(([book,verses,title,category,tags,context,questio
  id:(BOOK_CODES[book]+"-"+verses).toLowerCase().replace(/[^a-z0-9]+/g,"-"),
  book,verses,ref:book+" "+verses,title,category,tags:tags.split(","),context,question,prayer,
  testament:["Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","1 Timothy","2 Timothy","Hebrews","James","1 Peter","1 John","Revelation"].includes(book)?"New":"Old",
- niv:"https://www.bible.com/bible/111/"+BOOK_CODES[book]+"."+verses.replace(":","-").replace(/-/g,(m,idx,s)=>idx===s.indexOf("-")?"-":"-")+".NIV",
+ niv:"https://www.bible.com/bible/111/"+BOOK_CODES[book]+"."+verses.replace(":",".")+".NIV",
  web:"https://www.biblegateway.com/passage/?search="+encodeURIComponent(book+" "+verses)+"&version=WEB"
 }));
 // A curated selection, not an attempt to replace a full Bible reader.
