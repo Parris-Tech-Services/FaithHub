@@ -76,6 +76,25 @@ jobs:
           ! grep -q 'faithhub-podcast-button' _site/index.html
           grep -q 'Faith podcasts' _site/podcasts.html
 
+      - name: Bind generated public pages to this exact Git source SHA
+        shell: bash
+        env:
+          DEPLOY_SOURCE_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import os,re
+          from pathlib import Path
+          sha=os.environ["DEPLOY_SOURCE_SHA"]
+          assert re.fullmatch(r"[0-9a-f]{40}",sha)
+          for filename in ("index.html", "psalms.html"):
+              p=Path("_site")/filename
+              html=p.read_text(encoding="utf-8")
+              assert re.search(r"<head\s*>",html,re.I),filename
+              tag=f'<meta name="faithhub-deploy-sha" content="{sha}">'
+              assert "faithhub-deploy-sha" not in html, "Do not overwrite an unverified source marker"
+              html=re.sub(r"<head\s*>",lambda m: m.group(0)+"\n"+tag,html,count=1,flags=re.I)
+              p.write_text(html,encoding="utf-8")
+          PY
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
