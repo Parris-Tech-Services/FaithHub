@@ -24,6 +24,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify prayer practice and inline scripts
+        run: node --test scripts/check-prayer-practice.test.mjs
+
       - name: Prepare static site with native podcast button
         shell: bash
         run: |
@@ -46,6 +49,9 @@ jobs:
               print(f'Injected native podcast button into {path}')
           PY
 
+          test -f _site/prayer-practice.html
+          grep -q 'href="prayer-practice.html"' _site/index.html
+          test -f _site/docs/prayer/john-mark-comer-talking-with-god-2026-10-29.md
           test -f _site/podcasts.html
           grep -q 'id="faithhub-podcast-button"' _site/index.html
           grep -q 'href="./podcasts.html"' _site/index.html
