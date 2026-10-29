@@ -6,7 +6,7 @@ const podcastDock = {
   name: 'josh-podcast-dock',
   transformIndexHtml(html, ctx) {
     // Keep sensitive prayer reflections free of third-party launchers.
-    if ((ctx.path?.includes('prayer-practice.html') || ctx.path?.includes('daily-prayer.html') || ctx.path?.includes('prayer-library.html') || ctx.path?.includes('scripture-atlas.html'))) return []
+    if ((ctx.path?.includes('prayer-practice.html') || ctx.path?.includes('daily-prayer.html') || ctx.path?.includes('prayer-library.html') || ctx.path?.includes('scripture-atlas.html') || ctx.path?.includes('psalms.html'))) return []
     return [{
       tag: 'script',
       attrs: {
