@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 const STORAGE_KEY = 'rule-of-life-companion-v1'
+const APPEARANCE_KEY = 'faithhub-appearance-v1'
 const todayKey = () => new Date().toISOString().slice(0, 10)
 
 const scriptures = [
@@ -88,8 +89,11 @@ export default function App() {
   const [state, setState] = useState(loadState)
   const [date, setDate] = useState(todayKey())
   const [tab, setTab] = useState('today')
+  const [appearance, setAppearance] = useState(() => { try { return localStorage.getItem(APPEARANCE_KEY) === 'sanctuary' ? 'sanctuary' : 'original' } catch { return 'original' } })
 
   const entry = state.entries[date] || blankEntry(date)
+
+  useEffect(() => { try { localStorage.setItem(APPEARANCE_KEY, appearance) } catch {} }, [appearance])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
@@ -128,11 +132,14 @@ export default function App() {
   }
 
   return (
-    <main>
+    <main className={appearance === 'sanctuary' ? 'sanctuary-theme' : ''}>
+      <section className="appearance-settings" aria-label="FaithHub settings">
+        <details><summary>Settings</summary><div className="appearance-options"><label htmlFor="faithhub-style">Appearance</label><select id="faithhub-style" value={appearance} onChange={(e) => setAppearance(e.target.value)}><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option></select><p>Changes the look, not your prayers, reflections or saved entries.</p></div></details>
+      </section>
       <section className="hero">
         <div>
           <p className="eyebrow">Rule of Life Companion</p>
-          <h1>Gentle formation, not spiritual scorekeeping.</h1>
+          <h1>{appearance === 'sanctuary' ? 'A quiet place to receive.' : 'Gentle formation, not spiritual scorekeeping.'}</h1>
           <p className="lead">A quiet place to receive Scripture, pray through the day, reflect honestly, and notice where God’s grace is already at work.</p>
         </div>
         <aside className="posture-card">
