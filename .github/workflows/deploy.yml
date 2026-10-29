@@ -49,7 +49,7 @@ jobs:
           )
 
           for path in Path('_site').glob('*.html'):
-              if path.name == 'podcasts.html':
+              if path.name in ('podcasts.html','psalms.html'):
                   continue
               html = path.read_text(encoding='utf-8')
               if 'faithhub-podcast-button' in html:
