@@ -159,3 +159,30 @@ footer { display: flex; justify-content: space-between; gap: 12px; color: #675c5
   .toolbar { padding: 10px; }
   .tabs button, .date-tools button, input { width: 100%; }
 }
+
+
+/* Optional Sanctuary appearance: scoped so Original remains unchanged. */
+.appearance-settings { display:flex; justify-content:flex-end; margin-bottom:12px; }
+.appearance-settings details { position:relative; z-index:5; }
+.appearance-settings summary { cursor:pointer; border:1px solid #b9aa94; border-radius:12px; padding:10px 16px; background:#fffaf1; color:#332a22; font-weight:650; }
+.appearance-options { position:absolute; right:0; top:calc(100% + 8px); width:min(300px,calc(100vw - 36px)); background:#fffdf8; border:1px solid #c5b8a4; border-radius:16px; padding:18px; box-shadow:0 12px 32px #332a2229; }
+.appearance-options label { display:block; font-weight:700; margin-bottom:8px; }
+.appearance-options select { width:100%; }
+.appearance-options p { margin:10px 0 0; font-size:.85rem; }
+.sanctuary-theme { color:#24372e; font-family:Inter,ui-sans-serif,system-ui,sans-serif; }
+body:has(.sanctuary-theme) { background:linear-gradient(145deg,#f9f7f0,#edece2 60%,#e5ebe2); }
+.sanctuary-theme h1,.sanctuary-theme h2 { font-family:Georgia,'Times New Roman',serif; letter-spacing:-.035em; line-height:1.13; }
+.sanctuary-theme h1 { font-size:clamp(2.8rem,7vw,5.5rem); max-width:680px; }
+.sanctuary-theme .hero { padding:clamp(20px,5vw,56px) 0; gap:36px; }
+.sanctuary-theme .eyebrow { color:#526f5d; letter-spacing:.17em; }
+.sanctuary-theme .lead { line-height:1.85; max-width:580px; }
+.sanctuary-theme .card,.sanctuary-theme .toolbar,.sanctuary-theme footer { background:#fffefaed; border:1px solid #dce2d8; border-radius:20px; box-shadow:0 12px 36px #344d3a0b; }
+.sanctuary-theme .posture-card { background:linear-gradient(150deg,#284d3d,#476a56); border:0; border-radius:22px; box-shadow:0 22px 48px #294b3626; }
+.sanctuary-theme .posture-card h2 { color:#fffdf5; }
+.sanctuary-theme button.active,.sanctuary-theme button.primary { background:#294e3d; color:white; }
+.sanctuary-theme button:hover { background:#e2eee3; color:#203b2c; }
+.sanctuary-theme button.active:hover { background:#365e49; color:white; }
+.sanctuary-theme .soft-note { background:#eaf1e9; border-color:#d1e0d2; }
+.sanctuary-theme .scripture-card blockquote { font-family:Georgia,serif; font-size:clamp(1.3rem,2.5vw,1.7rem); line-height:1.7; }
+.sanctuary-theme :is(button,input,select,textarea,a,summary):focus-visible { outline:3px solid #547d65; outline-offset:3px; }
+@media(prefers-reduced-motion:reduce) { .sanctuary-theme *, .sanctuary-theme *::before,.sanctuary-theme *::after { animation:none!important; transition:none!important; } }
