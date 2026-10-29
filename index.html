@@ -236,9 +236,26 @@
       .study-link { justify-content: center; }
     }
   </style>
-</head>
+<style>
+/* Three independent visual styles, keeping the existing FaithHub data model intact */
+.appearance-settings{display:flex;justify-content:flex-end;margin:0 0 14px}.appearance-settings details{position:relative;z-index:20}.appearance-settings summary{cursor:pointer;border:2px solid var(--border);border-radius:12px;padding:10px 15px;background:var(--card);font-weight:700}.appearance-options{position:absolute;right:0;top:calc(100% + 6px);width:min(300px,calc(100vw - 40px));padding:16px;background:#fff;border:1px solid #b8b8b8;border-radius:15px;box-shadow:0 15px 40px #0002;color:#24332a}.appearance-options label{display:block;margin-bottom:8px;font-weight:700}.appearance-options select{width:100%;color:#24332a;background:white;border:1px solid #88958a}.appearance-options p{font-size:.85rem;margin:10px 0 0}
+body.style-sanctuary{--bg:#f1f0e8;--fg:#283b2e;--muted:#5c675e;--card:#fffdf7;--border:#cbd8cb;--button-bg:#fffdf7;--button-fg:#283b2e;--active-bg:#315440;--active-fg:#fff}
+body.style-editorial{--bg:#fdfcf7;--fg:#2d3930;--muted:#7c7874;--card:#fff;--border:#e8e2d9;--button-bg:#fff;--button-fg:#2d3930;--active-bg:#2d3930;--active-fg:#fff}
+body:is(.style-sanctuary,.style-editorial) h1,body:is(.style-sanctuary,.style-editorial) h2{font-family:Georgia,'Times New Roman',serif;letter-spacing:-.035em;line-height:1.13}
+body:is(.style-sanctuary,.style-editorial) .hero,body:is(.style-sanctuary,.style-editorial) .toolbar,body:is(.style-sanctuary,.style-editorial) .card,body:is(.style-sanctuary,.style-editorial) footer{border-width:1px;box-shadow:0 12px 30px #243a2710}
+body.style-sanctuary .hero{background:linear-gradient(135deg,#fefcf6,#e9f0e8)}
+body.style-editorial main{max-width:1140px}
+body.style-editorial .hero{padding:clamp(25px,5vw,65px);background:#fdfcf7;grid-template-columns:1.4fr .8fr;gap:30px}
+body.style-editorial h1{font-size:clamp(2.8rem,6vw,5.8rem);line-height:1.12}
+body.style-editorial .lead{line-height:1.85;font-size:1.13rem}
+body.style-editorial .eyebrow{letter-spacing:.2em;font-weight:600}
+body.style-editorial .card{border-radius:24px}
+body.style-editorial .toolbar{border-radius:18px}
+body:is(.style-sanctuary,.style-editorial) :is(button,select,a,summary):focus-visible{outline:3px solid #547d65;outline-offset:3px}
+@media(max-width:760px){body.style-editorial .hero{grid-template-columns:1fr;padding:28px 20px}body.style-editorial h1{font-size:clamp(2.5rem,10vw,4rem)}}
+</style></head>
 <body>
-  <main>
+  <main><section class="appearance-settings" aria-label="FaithHub settings"><details><summary>Settings · Appearance</summary><div class="appearance-options"><label for="faithhub-style">Visual style</label><select id="faithhub-style"><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><p>Your prayer and reflection entries stay unchanged.</p></div></details></section>
     <section class="hero">
       <div>
         <p class="eyebrow">FaithHub / Rule of Life Companion</p>
@@ -437,6 +454,17 @@
     document.getElementById('resetBtn').onclick = () => { state.entries[date] = blank(date); saveState(); render(); };
     document.getElementById('themeBtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); };
 
+    const appearanceSelect = document.getElementById('faithhub-style');
+    const APPEARANCE_STORAGE = 'faithhub-appearance-v1';
+    function applyAppearance(value) {
+      const selected = ['original', 'sanctuary', 'uxpilot'].includes(value) ? value : 'original';
+      document.body.classList.toggle('style-sanctuary', selected === 'sanctuary');
+      document.body.classList.toggle('style-editorial', selected === 'uxpilot');
+      appearanceSelect.value = selected;
+      localStorage.setItem(APPEARANCE_STORAGE, selected);
+    }
+    appearanceSelect.addEventListener('change', event => applyAppearance(event.target.value));
+    applyAppearance(localStorage.getItem(APPEARANCE_STORAGE) || 'original');
     render();
   </script>
   <script src="https://parris-tech-services.github.io/WhirringWilderness/network/parris-network.js?v=2.1"></script>
