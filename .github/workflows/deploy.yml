@@ -27,37 +27,53 @@ jobs:
       - name: Verify prayer practice and inline scripts
         run: node --test scripts/*.test.mjs
 
-      - name: Prepare static site with native podcast button
+      - name: Prepare static site with podcasts in normal page flow
         shell: bash
         run: |
           mkdir -p _site
           rsync -a --exclude='.git' --exclude='_site' ./ _site/
           python - <<'PY'
           from pathlib import Path
+          import re
 
-          button = '''\n  <style id="faithhub-podcast-button-style">\n    #faithhub-podcast-button{position:fixed;z-index:2147483000;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);display:inline-flex;align-items:center;justify-content:center;min-width:172px;max-width:calc(100vw - 24px);padding:13px 20px;border:2px solid #fff;border-radius:999px;background:#111827;color:#fff;text-decoration:none;font:800 15px/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 12px 34px rgba(0,0,0,.55)}\n    #faithhub-podcast-button:focus-visible{outline:3px solid #38bdf8;outline-offset:3px}\n    @media(max-width:520px){#faithhub-podcast-button{bottom:max(12px,env(safe-area-inset-bottom));width:auto}}\n  </style>\n  <a id="faithhub-podcast-button" href="./podcasts.html" aria-label="Open FaithHub podcasts">Podcasts</a>\n'''
+          # A fixed-position shortcut previously covered tabs and other controls on mobile.
+          # Keep the entry point reachable and visible, but never overlay page content.
+          podcast_nav = (
+              '<nav id="faithhub-podcast-shortcut" aria-label="Faith podcasts" '
+              'style="display:block;margin:0 0 16px">'
+              '<a href="./podcasts.html" style="display:inline-flex;align-items:center;'
+              'justify-content:center;min-height:48px;min-width:135px;'
+              'border:2px solid #fff;border-radius:12px;padding:10px 16px;'
+              'background:#111827;color:#fff;font:700 15px/1.4 system-ui,sans-serif;'
+              'text-decoration:none">Faith podcasts</a></nav>\n'
+          )
 
           for path in Path('_site').glob('*.html'):
               if path.name in ('podcasts.html','psalms.html'):
                   continue
               html = path.read_text(encoding='utf-8')
               if 'faithhub-podcast-button' in html:
+                  raise SystemExit(f'{path}: obsolete floating podcast button remains')
+              if 'href="podcasts.html"' in html or 'href="./podcasts.html"' in html:
+                  # The page already has a conventional, visible link.
                   continue
-              if '</body>' not in html:
-                  raise SystemExit(f'{path} has no </body> tag')
-              path.write_text(html.replace('</body>', button + '</body>', 1), encoding='utf-8')
-              print(f'Injected native podcast button into {path}')
+              if not re.search(r'<main(?:\s[^>]*)?>', html, re.I):
+                  raise SystemExit(f'{path}: no <main> landmark found')
+              html = re.sub(r'(<main(?:\s[^>]*)?>)', lambda m: m.group(1) + '\n' + podcast_nav, html, count=1, flags=re.I)
+              path.write_text(html, encoding='utf-8')
+              print(f'Added in-flow podcasts navigation to {path}')
           PY
 
-          test -f _site/prayer-practice.html
           test -f _site/psalms.html
           test -f _site/assets/psalm-explorer.mjs
           grep -q 'href="psalms.html"' _site/index.html
+          test -f _site/prayer-practice.html
           grep -q 'href="prayer-practice.html"' _site/index.html
           test -f _site/docs/prayer/john-mark-comer-talking-with-god-2026-10-29.md
           test -f _site/podcasts.html
-          grep -q 'id="faithhub-podcast-button"' _site/index.html
-          grep -q 'href="./podcasts.html"' _site/index.html
+          grep -q 'href="podcasts.html"' _site/index.html
+          grep -q 'id="faithhub-podcast-shortcut"' _site/prayer-practice.html
+          ! grep -q 'faithhub-podcast-button' _site/index.html
           grep -q 'Faith podcasts' _site/podcasts.html
 
       - name: Configure Pages

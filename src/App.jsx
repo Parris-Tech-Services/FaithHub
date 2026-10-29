@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 
 const STORAGE_KEY = 'rule-of-life-companion-v1'
 const APPEARANCE_KEY = 'faithhub-appearance-v1'
-const todayKey = () => new Date().toISOString().slice(0, 10)
+const todayKey = () => {
+  const now = new Date()
+  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-')
+}
 
 const scriptures = [
   { ref: 'Matthew 11:28–30', text: 'Come to me, all you who are weary and burdened, and I will give you rest. Take my yoke upon you and learn from me…', posture: 'Receive rest before you try to improve.' },
@@ -128,6 +131,7 @@ export default function App() {
   }
 
   function resetDay() {
+    if (!window.confirm('Delete all saved rhythms and reflections for ' + date + '? This cannot be undone.')) return
     updateEntry(() => blankEntry(date))
   }
 
@@ -153,13 +157,14 @@ export default function App() {
 
       <nav className="toolbar">
         <a href="scripture-atlas.html" className="study-link">Scripture Atlas · Psalms, Scripture and reading plans</a>
+        <a href="podcasts.html" className="study-link">Faith podcasts</a>
         <div className="tabs">
           {['today', 'prayer', 'reflection', 'family', 'sabbath'].map((item) => (
             <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>{item}</button>
           ))}
         </div>
         <div className="date-tools">
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <label>Practice date <input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
           <button onClick={() => setDate(todayKey())}>Today</button>
           <button onClick={resetDay}>Reset</button>
         </div>
