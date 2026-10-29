@@ -1,0 +1,86 @@
+// End-to-end acceptance against the REAL GitHub Pages URL after successful deployment.
+// This script makes no changes outside its ephemeral test browser/localStorage.
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+
+const BASE = 'https://parris-tech-services.github.io/FaithHub/';
+const EXPECTED = process.env.EXPECTED_DEPLOY_SHA || '';
+if (EXPECTED && !/^[a-f0-9]{40}$/i.test(EXPECTED)) throw Error('Expected source SHA must be 40 hex chars');
+const browser = await chromium.launch({headless:true});
+let lastError;
+try {
+  for(let attempt=1; attempt<=6; attempt++){
+    const context=await browser.newContext({
+      viewport:{width:390,height:844},isMobile:true,
+      deviceScaleFactor:1,locale:'en-AU',
+    });
+    const page=await context.newPage();
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    try{
+      const home=await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:30000});
+      assert.equal(home?.status(),200,'Real FaithHub home must load');
+      const homeMarker=await page.locator('meta[name="faithhub-deploy-sha"]').getAttribute('content').catch(()=>null);
+      if(EXPECTED) assert.equal(homeMarker,EXPECTED,'Public homepage is not the verified deployment SHA yet');
+      const psalmsLink=page.getByRole('link',{name:/Explore Scripture .* Psalms/i}).first();
+      await psalmsLink.waitFor({timeout:18000});
+      await psalmsLink.click();
+      await page.waitForURL(url=>url.pathname.endsWith('/FaithHub/psalms.html'),{timeout:18000});
+      const passage=page.locator('#passage-title');
+      await passage.waitFor();
+      const remoteMarker=await page.locator('meta[name="faithhub-deploy-sha"]').getAttribute('content').catch(()=>null);
+      if(EXPECTED) assert.equal(remoteMarker,EXPECTED,'Public Psalm page is not the verified deployment SHA yet');
+      await page.getByRole('button',{name:/I feel hurt/}).click();
+      assert.equal(await passage.textContent(),'Psalm 13','Real live mobile interaction failed');
+      const readUrl=await page.locator('#read-passage').getAttribute('href');
+      assert.match(readUrl,/PSA\.13\.NIV$/,'Link to authorised Psalm must update');
+      const field=page.getByLabel('My honest response');
+      await field.fill('Synthetic CI only: no personal prayer');
+      await page.getByRole('button',{name:/I feel hurt/}).click();
+      assert.equal(await field.inputValue(),'Synthetic CI only: no personal prayer','Repeated click must preserve unsaved reflection');
+      await page.getByRole('button',{name:'Save privately'}).click();
+      await page.reload({waitUntil:'domcontentloaded'});
+      await page.getByRole('button',{name:/I feel hurt/}).click();
+      assert.equal(await field.inputValue(),'Synthetic CI only: no personal prayer','Private note should restore from ephemeral browser localStorage');
+      page.once('dialog',d=>d.accept());
+      await page.getByRole('button',{name:'Delete this note'}).click();
+      assert.equal(await field.inputValue(),'','Note must delete after confirmation');
+      const widths=await page.evaluate(()=>({
+        visible:window.innerWidth, actual:document.documentElement.scrollWidth,
+      }));
+      assert.ok(widths.actual<=widths.visible+1,'No mobile horizontal overflow: '+JSON.stringify(widths));
+      assert.deepEqual(errors,[],'No uncaught client JS errors');
+      await context.close();
+      const desk=await browser.newContext({viewport:{width:1366,height:900}});
+      const dp=await desk.newPage();
+      const result=await dp.goto(BASE+'psalms.html',{waitUntil:'domcontentloaded'});
+      assert.equal(result?.status(),200);
+      await dp.getByRole('link',{name:/Explore Sons of Korah/}).waitFor();
+      await dp.getByRole('link',{name:/Explore the Bible atlas/}).waitFor();
+      if(EXPECTED) {
+        const marker=await dp.locator('meta[name="faithhub-deploy-sha"]').getAttribute('content');
+        assert.equal(marker,EXPECTED);
+      }
+      await desk.close();
+      console.log(JSON.stringify({
+        status:'PASS',target:'public deployed GitHub Pages, real Chromium mobile + desktop',
+        expected_deploy_sha:EXPECTED||'not asserted (PR preview)',
+        source_sha_observed:remoteMarker||'unmarked legacy deployment',
+        checks:['home navigation','Psalm 13 interaction','authorised link','unsaved draft',
+                'save/reload/delete','no mobile overflow','desktop links','no JS errors'],
+        caveat:'One scoped browser journey, not whole-product usability or human evaluation',
+      }));
+      lastError=null;
+      break;
+    }catch(err){
+      lastError=err;
+      await context.close();
+      if(attempt<6){
+        // Pages CDN can lag behind successful publish by several seconds.
+        console.log('Attempt '+attempt+': '+String(err.message).slice(0,200)+'; retrying deployed propagation.');
+        await new Promise(resolve=>setTimeout(resolve,8000));
+      }
+    }
+  }
+  if(lastError)throw lastError;
+}finally{await browser.close();}
