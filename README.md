@@ -51,6 +51,12 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 - **[Read the source-linked theological research](docs/prayer/john-mark-comer-talking-with-god-2026-10-29.md)** (29 October 2026): primary sources, theological distinctions, practice and cautions. The original Practicing the Way material groups petition and intercession together under *talking with God*; these are not its four top-level prayer sessions.
 - Source: [Practicing the Way Prayer Practice](https://www.practicingtheway.org/prayer).
 
+## Scripture Atlas and research roadmap (29 October 2026)
+
+- **[Open Scripture Atlas](scripture-atlas.html)**: 126 context-aware passages including 31 Psalms, Bible.com NIV and Bible Gateway WEB links, searchable themes, twelve seven-day reading journeys, memorisation cues, original guide read-aloud, bookmarking, private opt-in reflection and export. This is a *curated guide*, not the complete Bible.
+- **[Numbered, Scripture-grounded roadmap](docs/faithhub-bible-prayer-feature-roadmap-2026-10-29.md)**: 182 prioritised, biblically grounded features with official app comparisons, acceptance criteria, existing/implemented/planned statuses and rights/privacy safeguards.
+- [World English Bible permissions](https://ebible.org/engwebp/copyright.htm). Scripture is linked to providers; extended copyrighted translations are not reproduced.
+
 ## Featured Scripture
 
 - [Luke 11:5–13 (NIV) — Ask, seek, knock](https://bible.com/bible/111/luk.11.5-13.NIV). This reading is included in the daily Scripture rotation and linked permanently from FaithHub's main page.
