@@ -26,7 +26,7 @@ test("guide and research distinguish the official four sessions from the adapted
   assert.match(guide, /talking to God, talking with God, listening to God, and being with God/i);
   assert.match(research, /petition.*intercession.*separate, related practices/i);
   assert.match(research, /The Prayer Practice/);
-  assert.match(research, /not a claim.*transcribed/i);
+  assert.match(research, /independently transcribed/i);
   assert.match(guide, /https:\/\/www\.practicingtheway\.org\/prayer/);
 });
 
