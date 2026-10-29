@@ -48,6 +48,7 @@ async function main(){
    await page.locator(".resource-links summary").click();
    const genesis=page.locator('a[href="ab401a-genesis.html"]');
    assert.ok(await genesis.isVisible(),width+"px Genesis is hidden");
+   await genesis.scrollIntoViewIfNeeded();
    const hit=await genesis.evaluate(el=>{const r=el.getBoundingClientRect();const t=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return t===el||el.contains(t)});
    assert.ok(hit,width+"px Genesis link covered");
    await page.locator('[data-tab="sabbath"]').click();
