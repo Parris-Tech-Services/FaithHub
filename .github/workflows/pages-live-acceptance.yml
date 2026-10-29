@@ -1,0 +1,62 @@
+name: Live FaithHub Pages browser acceptance
+
+on:
+  # Only a successful actual deployment can be attributed to its source SHA.
+  workflow_run:
+    workflows: ["Deploy FaithHub to GitHub Pages"]
+    types: [completed]
+  # Before merging, exercise the CURRENT public site but do NOT claim PR SHA.
+  pull_request:
+    paths:
+      - 'scripts/pages-live-browser.mjs'
+      - '.github/workflows/pages-live-acceptance.yml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deployed-browser-proof:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source corresponding to the deploy event
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright in ephemeral runner only
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run actual public-site mobile and desktop acceptance
+        env:
+          EXPECTED_DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
+        run: node scripts/pages-live-browser.mjs
+      - name: Report exact verification scope
+        if: success()
+        shell: bash
+        env:
+          GH_SOURCE: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          GH_EVENT: ${{ github.event_name }}
+          GH_DEPLOY: ${{ github.event.workflow_run.html_url }}
+        run: |
+          echo "## FaithHub browser acceptance" >> "$GITHUB_STEP_SUMMARY"
+          echo "Real Chromium hit the public GitHub Pages URL, including mobile UI and private-note save/delete in an ephemeral profile." >> "$GITHUB_STEP_SUMMARY"
+          echo "Source commit: $GH_SOURCE" >> "$GITHUB_STEP_SUMMARY"
+          echo "Trigger: $GH_EVENT" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$GH_EVENT" = "workflow_run" ]; then
+            echo "Verified deployed meta SHA and successful Pages run: $GH_DEPLOY" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "PR/manual smoke only: this did NOT prove the PR source was deployed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Limited scoped live journey, NOT human usability sign-off or universal production completeness." >> "$GITHUB_STEP_SUMMARY"
