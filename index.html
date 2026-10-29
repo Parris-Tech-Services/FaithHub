@@ -297,6 +297,13 @@ body.dark .appearance-options select{background:#151515;color:#fff;border-color:
 body.dark .appearance-options p{color:#ddd}
 body.style-editorial.dark,body.style-sanctuary.dark{--bg:#101813;--fg:#edf4e9;--muted:#d3ddce;--card:#1c2a20;--border:#526553;--button-bg:#1c2a20;--button-fg:#edf4e9;--active-bg:#dbe9d5;--active-fg:#17271c}
 body.style-editorial.dark .hero{background:#1c2a20}
+/* Dark Sanctuary must not retain the pale light-mode hero gradient. */
+body.style-sanctuary.dark .hero{background:linear-gradient(135deg,#1c2a20,#223528);color:var(--fg)}
+body.style-sanctuary.dark .hero :is(h1,h2,h3,p,.eyebrow,.lead),body.style-sanctuary.dark .posture :is(h1,h2,h3,p,.eyebrow){color:var(--fg)}
+body.style-sanctuary.dark .posture{background:#1c2a20;color:var(--fg);border-color:var(--border)}
+body.style-sanctuary.dark .meter{border-color:var(--border)}
+body.style-sanctuary.dark .meter span{background:var(--fg)}
+
 body.style-editorial .hero{display:block;max-width:100%;padding:clamp(28px,6vw,68px);min-height:0}
 body.style-editorial .hero::before{content:'FaithHub';display:block;font:700 clamp(1.35rem,3vw,1.85rem)/1.3 Georgia,serif;margin-bottom:clamp(35px,7vw,80px)}
 body.style-editorial .hero .eyebrow{font-size:.7rem;letter-spacing:.19em}
