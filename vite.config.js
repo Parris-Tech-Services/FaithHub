@@ -35,6 +35,8 @@ export default defineConfig({
         daily: fileURLToPath(new URL('./daily-prayer.html', import.meta.url)),
         podcasts: fileURLToPath(new URL('./podcasts.html', import.meta.url)),
         prayer: fileURLToPath(new URL('./prayer-practice.html', import.meta.url)),
+        study: fileURLToPath(new URL('./bible-study.html', import.meta.url)),
+        creators: fileURLToPath(new URL('./christian-creators.html', import.meta.url)),
       },
     },
   },
