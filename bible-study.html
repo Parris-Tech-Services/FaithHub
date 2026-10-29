@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Bible study with Scripture links, visual atlas and timeline, biblical themes, Christian media and private local study notes.">
+<title>Bible Study · FaithHub</title>
+<link rel="stylesheet" href="assets/study.css">
+</head>
+<body><main>
+<nav aria-label="FaithHub navigation">
+<a href="./">FaithHub home</a><a href="daily-prayer.html">Everyday prayer</a>
+<a href="prayer-practice.html">Prayer guide</a><a href="christian-creators.html">Christian creators</a>
+<a href="podcasts.html">Podcasts</a>
+</nav>
+<header class="hero">
+<p class="eyebrow">FaithHub · Scripture &amp; formation</p>
+<h1>Read deeply. See the story. Return to Jesus.</h1>
+<p class="lead">Explore Scripture through five lenses inspired by the strengths of e-Sword and the original Glo Bible: reading, geography, narrative, themes and original media. These are independently built guides, not copies of either product.</p>
+<p class="small">No imported copyrighted Bible translations, Strong’s databases, artist recordings or proprietary imagery. Read the Bible on its authorised provider’s site. Your optional study notes remain only in this browser unless you choose to export them.</p>
+<div class="actions"><a class="button primary" href="#study">Start a passage</a><a class="button" href="christian-creators.html">Explore Christian creators</a><a class="button" href="https://www.e-sword.net/" target="_blank" rel="noopener noreferrer">Open e-Sword</a></div>
+</header>
+<section id="study" class="panel" aria-labelledby="study-title">
+<p class="eyebrow">Passage companion</p><h2 id="study-title">Choose a passage</h2>
+<p>Search this small, original guide by reference, topic, place or description. This is <strong>not</strong> a full-text search of the Bible.</p>
+<div class="filters"><div><label for="study-search">Find a passage</label><input id="study-search" type="search" placeholder="Try Psalm, prayer, Galatia or lament" autocomplete="off"></div><div><label for="study-theme">Theme</label><select id="study-theme"><option value="">All themes</option></select></div></div>
+<p id="search-count" class="small" role="status"></p>
+<div class="grid"><div><label for="study-select">Suggested passages</label><select id="study-select" size="7" aria-describedby="search-count"></select></div>
+<article class="card reading" id="passage-details" aria-live="polite"><h3 id="passage-title">Choose a passage to begin</h3><p id="passage-summary"></p><p id="passage-question" class="note"></p><p class="chip" id="passage-era"></p><div class="actions"><a id="read-passage" class="button primary" href="https://www.bible.com/" target="_blank" rel="noopener noreferrer">Read Scripture</a><a id="study-companion" class="button" href="https://bibleproject.com/" target="_blank" rel="noopener noreferrer">View context</a><a id="study-creator" class="button" href="christian-creators.html" hidden>Related creator</a></div></article></div>
+</section>
+<section id="lenses" class="panel" aria-labelledby="lenses-title">
+<p class="eyebrow">Five study lenses</p><h2 id="lenses-title">One passage, different perspectives</h2>
+<div class="lensmenu" role="group" aria-label="Select a study lens">
+<button type="button" data-lens="bible" aria-pressed="true">Bible</button><button type="button" data-lens="atlas" aria-pressed="false">Atlas</button><button type="button" data-lens="timeline" aria-pressed="false">Timeline</button><button type="button" data-lens="topics" aria-pressed="false">Topics</button><button type="button" data-lens="media" aria-pressed="false">Media</button>
+</div>
+<div id="lens-bible" class="lenspanel">
+<h3>Read and compare without losing context</h3><p>Read the selected chapter in YouVersion and compare it using a different translation in its own app. For parallel commentaries, dictionaries and Strong’s references, continue in e-Sword or Blue Letter Bible.</p>
+<div class="actions"><a id="lens-bible-verse" class="button primary" href="https://www.bible.com/" target="_blank" rel="noopener noreferrer">Read selected passage</a><a class="button" href="https://www.e-sword.net/" target="_blank" rel="noopener noreferrer">e-Sword study library</a><a class="button" href="https://www.blueletterbible.org/" target="_blank" rel="noopener noreferrer">Word study &amp; Strong’s</a></div>
+<p class="small">External links open the source site; FaithHub has not imported its translations, dictionary text or software modules.</p>
+</div>
+<div id="lens-atlas" class="lenspanel" hidden><h3>Places of the story</h3><p>Open a real interactive biblical map with location and passage context. We do not invent coordinates or embed third-party imagery without permission.</p><div id="atlas-list" class="grid"></div><div class="actions"><a class="button primary" href="https://bible-atlas.com/places" target="_blank" rel="noopener noreferrer">Explore all biblical places</a></div></div>
+<div id="lens-timeline" class="lenspanel" hidden><h3>A journey through the biblical narrative</h3><p>These are broad narrative stages. Biblical events and psalms cannot always be assigned universally agreed calendar dates.</p><div id="timeline-list" class="timeline"></div></div>
+<div id="lens-topics" class="lenspanel" hidden><h3>From a real question to Scripture</h3><p>Choose a topic and read several passages, rather than lifting a single verse away from its context.</p><div id="topics-list" class="grid"></div></div>
+<div id="lens-media" class="lenspanel" hidden><h3>Hear, watch and reflect</h3><p>Visit the original publishers and musicians to listen or watch. FaithHub does not stream their recordings or bypass subscriptions.</p>
+<div class="grid three"><article class="card"><h3>Sons of Korah</h3><p>Pray a Psalm, then explore its musical setting.</p><a href="https://sonsofkorah.com/" target="_blank" rel="noopener noreferrer">Official music</a></article>
+<article class="card"><h3>BibleProject</h3><p>Start with the original visual overview of Psalms.</p><a href="https://bibleproject.com/videos/psalms/" target="_blank" rel="noopener noreferrer">Watch Psalms overview</a></article>
+<article class="card"><h3>Colin Buchanan</h3><p>Choose a Bible-centred family song or children's faith resource.</p><a href="https://colinbuchanan.com.au/" target="_blank" rel="noopener noreferrer">Official music and resources</a></article></div>
+<div class="actions"><a class="button" href="christian-creators.html">All Christian creators and resources</a></div></div>
+</section>
+<section id="notes" class="panel" aria-labelledby="notes-title">
+<p class="eyebrow">Personal study notebook</p><h2 id="notes-title">A place to respond</h2>
+<p>Write your own question, observation, gratitude or prayer connected to the selected passage. Notes are not sent to another service, synced to GitHub or included in an analytics request.</p>
+<label for="study-notes">Private notes for <span id="notes-for">the selected passage</span></label><textarea id="study-notes" maxlength="10000" placeholder="What stands out? What might God be inviting me to notice?"></textarea>
+<div class="actions"><button id="save-notes" type="button" class="primary">Save on this device</button><button id="delete-notes" type="button">Delete this passage’s notes</button><button id="export-notes" type="button">Back up my notes (JSON)</button></div>
+<p class="status" id="note-status" role="status"></p>
+<details><summary>Privacy and recovery</summary><p>Browser local storage is not encrypted, and someone who uses this browser profile may be able to read your saved notes. This public GitHub Pages site has no account or cloud sync. Back up the exported JSON in your own secure location; opening it in a text editor reveals its contents. Clearing browser data removes saved notes. Do not store secrets or information about others without their permission.</p></details>
+</section>
+<section class="panel soft"><h2>Continue beyond this first study set</h2><p><a href="ab401a-genesis.html">Genesis study</a> · <a href="prayer-practice.html">Gratitude, lament, petition &amp; intercession</a> · <a href="christian-creators.html">Christian creators, stories and music</a></p><p class="small">Future licensed API work (YouVersion Platform/API.Bible) requires approved keys and content-specific terms. The original Glo Bible product's visual approach is an inspiration only.</p></section>
+<footer><p>FaithHub is an independent spiritual formation companion. Scripture texts and media stay with their rights holders. No affiliation with e-Sword, Glo, YouVersion, Sons of Korah or other linked creators is implied.</p><a href="./">Return to FaithHub</a></footer>
+</main><script type="module" src="assets/study-page.mjs"></script></body></html>
