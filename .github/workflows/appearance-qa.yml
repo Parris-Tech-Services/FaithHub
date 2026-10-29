@@ -1,0 +1,30 @@
+name: FaithHub Appearance Browser QA
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'scripts/appearance-browser.mjs'
+      - '.github/workflows/appearance-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-package-lock
+      - run: npm run build
+      - run: npm install --no-save --no-package-lock playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/appearance-browser.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appearance-qa-screenshots
+          path: faithhub-*.png
+          if-no-files-found: ignore
