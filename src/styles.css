@@ -186,3 +186,26 @@ body:has(.sanctuary-theme) { background:linear-gradient(145deg,#f9f7f0,#edece2 6
 .sanctuary-theme .scripture-card blockquote { font-family:Georgia,serif; font-size:clamp(1.3rem,2.5vw,1.7rem); line-height:1.7; }
 .sanctuary-theme :is(button,input,select,textarea,a,summary):focus-visible { outline:3px solid #547d65; outline-offset:3px; }
 @media(prefers-reduced-motion:reduce) { .sanctuary-theme *, .sanctuary-theme *::before,.sanctuary-theme *::after { animation:none!important; transition:none!important; } }
+
+
+/* UX Pilot editorial mockup — third, independent appearance. */
+body:has(.uxpilot-theme) { background:#f8f7f3; }
+.uxpilot-theme { color:#242c27; font-family:Inter,Arial,sans-serif; }
+.uxpilot-theme .uxpilot-header { display:flex; align-items:center; justify-content:space-between; padding:20px 4px 38px; gap:16px; }
+.uxpilot-theme .uxpilot-header>a { font:600 1.65rem Georgia,serif; text-decoration:none; color:#19241d; }
+.uxpilot-theme .uxpilot-header>div { display:flex; gap:8px; }
+.uxpilot-theme .uxpilot-header button { border:0; background:transparent; font-size:.95rem; color:#303b32; padding:10px; }
+.uxpilot-theme .appearance-settings { margin-bottom:0; }
+.uxpilot-theme .hero { display:block; padding:clamp(30px,7vw,90px) clamp(22px,5vw,70px); background:#fdfcf8; border:1px solid #c7c4c6; border-radius:24px; margin-bottom:48px; }
+.uxpilot-theme .hero>div:first-child { max-width:780px; }
+.uxpilot-theme .hero .eyebrow { font-size:.73rem; color:#646a64; letter-spacing:.23em; margin-bottom:32px; }
+.uxpilot-theme h1,.uxpilot-theme h2 { font-family:'Playfair Display',Georgia,serif; letter-spacing:-.035em; font-weight:400; }
+.uxpilot-theme h1 { font-size:clamp(3rem,7.5vw,6rem); line-height:1.13; max-width:750px; }
+.uxpilot-theme .lead { font-size:clamp(1rem,2.1vw,1.3rem); line-height:1.9; margin-top:34px; max-width:680px; color:#686b66; }
+.uxpilot-theme .posture-card { margin-top:35px; background:#2d3930; border-radius:18px; box-shadow:none; max-width:700px; }
+.uxpilot-theme .posture-card h2 { color:#fffdf8; }
+.uxpilot-theme .card,.uxpilot-theme .toolbar,.uxpilot-theme footer { background:#fdfcf8; border:1px solid #e8e2d9; border-radius:24px; box-shadow:none; }
+.uxpilot-theme button.active,.uxpilot-theme button.primary { background:#2d3930; color:white; }
+.uxpilot-theme .soft-note { background:#f2f1e9; color:#2d3930; }
+.uxpilot-theme :is(button,input,textarea,select,a,summary):focus-visible { outline:3px solid #526f5d; outline-offset:3px; }
+@media(max-width:520px) { .uxpilot-theme .uxpilot-header { padding-bottom:16px; }.uxpilot-theme .hero { padding:54px 22px; }.uxpilot-theme h1 { font-size:clamp(2.8rem,12vw,4rem); }.uxpilot-theme .posture-card { margin-top:24px; } }
