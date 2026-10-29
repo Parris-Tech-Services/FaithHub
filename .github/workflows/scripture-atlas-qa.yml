@@ -1,0 +1,39 @@
+name: Scripture Atlas Verification
+
+on:
+  pull_request:
+    paths:
+      - 'scripture-atlas.html'
+      - 'assets/scripture-atlas*'
+      - 'scripts/scripture-atlas.test.mjs'
+      - 'docs/faithhub-bible-prayer-feature-roadmap-2026-10-29.md'
+      - 'index.html'
+      - 'daily-prayer.html'
+      - 'src/App.jsx'
+      - 'vite.config.js'
+      - '.github/workflows/scripture-atlas-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: All FaithHub source tests
+        run: node --test scripts/*.test.mjs
+      - name: Verify static publishable assets
+        shell: bash
+        run: |
+          test -f scripture-atlas.html
+          test -f assets/scripture-atlas.mjs
+          test -f assets/scripture-atlas-data.mjs
+          test -f assets/scripture-atlas.css
+          grep -q 'href="scripture-atlas.html"' index.html
+          grep -q 'assets/scripture-atlas.mjs' scripture-atlas.html
