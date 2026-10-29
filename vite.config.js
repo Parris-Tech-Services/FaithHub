@@ -1,9 +1,12 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const podcastDock = {
   name: 'josh-podcast-dock',
-  transformIndexHtml() {
+  transformIndexHtml(html, ctx) {
+    // Keep sensitive prayer reflections free of third-party launchers.
+    if (ctx.path?.includes('prayer-practice.html')) return []
     return [{
       tag: 'script',
       attrs: {
@@ -23,4 +26,13 @@ export default defineConfig({
   plugins: [react(), podcastDock],
   // Relative assets make this work on both username.github.io and username.github.io/repo-name.
   base: './',
+  // Keep the standalone prayer guide reachable in Vite previews as well as GitHub Pages.
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        prayer: fileURLToPath(new URL('./prayer-practice.html', import.meta.url)),
+      },
+    },
+  },
 })
