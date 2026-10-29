@@ -10,7 +10,7 @@ try {
   const context=await browser.newContext({viewport:{width,height:820},deviceScaleFactor:1});
   const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:5173/',{waitUntil:'networkidle'});
-  await page.locator('.appearance-settings summary').click();
+  console.log('PAGE',width,page.url(),(await page.locator('body').innerText()).slice(0,250)); await page.locator('.appearance-settings summary').click({timeout:5000});
   const selector=page.locator('#faithhub-style');
   for(const [value,cls] of [['original',''],['sanctuary','sanctuary-theme'],['uxpilot','uxpilot-theme']]){
    await selector.selectOption(value);assert.equal(await selector.inputValue(),value);
