@@ -37,6 +37,16 @@ jobs:
         run: node --test scripts/*.test.mjs
       - name: Install browser harness
         run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.0
+      - name: Check Vite build does not inject third-party code into private reflections
+        shell: bash
+        run: |
+          npm run build
+          test -f dist/psalms.html
+          if grep -q 'podcast-launcher-v3.js' dist/psalms.html; then
+            echo 'Private Psalm reflections exposed to third-party launcher'
+            exit 1
+          fi
+          grep -q 'psalm-explorer.mjs' psalms.html
       - name: Install Chromium for real mobile and desktop acceptance
         run: npx playwright install --with-deps chromium
       - name: Test the deployed static HTML interaction in Chromium
