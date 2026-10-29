@@ -11,6 +11,7 @@ const scriptures = [
   { ref: 'John 15:4–5', text: 'Remain in me, as I also remain in you… apart from me you can do nothing.', posture: 'Start with connection, not effort.' },
   { ref: 'Philippians 4:6–7', text: 'Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.', posture: 'Bring the anxious thing into God’s presence.' },
   { ref: 'Romans 12:2', text: 'Do not conform to the pattern of this world, but be transformed by the renewing of your mind.', posture: 'Transformation is received slowly and honestly.' },
+  { ref: 'Luke 11:5–13 (NIV)', text: 'Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.', posture: 'Bring your needs to the Father; ask for the Holy Spirit and trust his goodness.', url: 'https://bible.com/bible/111/luk.11.5-13.NIV' },
 ]
 
 const fruits = [
@@ -162,6 +163,7 @@ export default function App() {
             <h2>{scripture.ref}</h2>
             <blockquote>“{scripture.text}”</blockquote>
             <p className="soft-note">{scripture.posture}</p>
+            {scripture.url && <p><a href={scripture.url} target="_blank" rel="noopener noreferrer">Read the full passage (NIV)</a></p>}
           </article>
           <article className="card">
             <p className="eyebrow">Fruit for today</p>
@@ -262,6 +264,7 @@ export default function App() {
         <span>Saved locally in this browser.</span>
         <span>No streaks. No guilt engine. Just daily return.</span>
       </footer>
+      <p className="muted" style={{ fontSize: ".72rem", marginTop: "14px" }}>Scripture taken from the Holy Bible, NEW INTERNATIONAL VERSION®, NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.® Used by permission. All rights reserved worldwide.</p>
     </main>
   )
 }
