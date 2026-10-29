@@ -39,6 +39,9 @@ try {
 
   const field=page.getByLabel('My honest response');
   await field.fill('Synthetic unsaved prayer');
+  await page.getByRole('button',{name:/I feel hurt/}).click();
+  assert.equal(await field.inputValue(),'Synthetic unsaved prayer',
+    'Re-selecting the same Psalm must preserve an unsaved draft');
   await page.getByRole('button',{name:/I want to thank God/}).click();
   await page.getByRole('button',{name:/I feel hurt/}).click();
   assert.equal(await field.inputValue(),'','Switching away must not silently save an unsaved reflection');
@@ -76,9 +79,16 @@ try {
   await context.close();
   const desktop=await browser.newContext({viewport:{width:1366,height:900}});
   const desktopPage=await desktop.newPage();
+  desktopPage.on('pageerror',e=>errors.push(e.message));
   await desktopPage.goto('http://127.0.0.1:'+PORT+'/psalms.html');
+  await desktopPage.getByRole('button',{name:/I am waiting/}).click();
+  assert.equal(await desktopPage.locator('#passage-title').textContent(),'Psalm 27');
+  assert.equal(await desktopPage.locator('#passage-title').getAttribute('aria-live'),'polite');
   await desktopPage.getByRole('link',{name:/Explore Sons of Korah/}).waitFor();
-  await desktopPage.getByRole('link',{name:/Explore the Bible atlas/}).waitFor();
+  const atlasLink=desktopPage.getByRole('link',{name:/Explore the Bible atlas/});
+  await atlasLink.waitFor();
+  const atlasResponse=await desktopPage.request.get('http://127.0.0.1:'+PORT+'/'+await atlasLink.getAttribute('href'));
+  assert.equal(atlasResponse.status(),200,'Scripture Atlas link must resolve in real deployed static files');
   await desktopPage.screenshot({path:'psalms-desktop-qa.png',fullPage:true});
   assert.deepEqual(errors,[], 'No uncaught browser errors');
   await desktop.close();
