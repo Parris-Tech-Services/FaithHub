@@ -20,7 +20,7 @@ test("The deployment cannot put the Podcasts link over the mobile navigation",()
 });
 test("Settings control is docked in the page flow with contrast and a 48px target",()=>{
  assert.match(home,/id="faithhub-tools-slot"/);
- assert.match(home,/id="parris-tools-launcher"/);
+ assert.match(home,/[\x27\x22]parris-tools-launcher[\x27\x22]/);
  assert.match(home,/new MutationObserver\(dock\)/);
  assert.match(css,/#parris-tools-launcher\s*\{/);
  assert.match(css,/position:\s*static\s*!important/);
