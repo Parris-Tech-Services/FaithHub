@@ -1,5 +1,9 @@
 # Rule of Life Companion
 
+Engineering principles: v5.1
+Assurance tier: 3 (private prayer material may be entered locally)
+Canonical repository: https://github.com/Parris-Tech-Services/FaithHub
+
 A gentle, non-performance-based spiritual formation app for daily Scripture, prayer rhythms, fruits of the Spirit reflection, repentance/gratitude, family prayer prompts, community rhythms, and Sabbath/rest tracking.
 
 ## Run locally
@@ -57,3 +61,11 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 - Entries are saved in local browser storage only.
 - There are no streaks or scores.
 - The progress bar is intentionally framed as “space made to notice God”, not spiritual performance.
+
+## Everyday prayer
+
+[Jesus, here with me](daily-prayer.html) offers seven everyday prayer moments, one saved daily anchor, a calendar reminder download, all nine fruits of the Spirit with practical responses, free prayer apps and a private resource shelf. Import a version-1 shelf JSON or add your own HTTPS links. Use **Back up my shelf** before clearing browser data; re-import merges without deleting existing links. Files and emails themselves remain with their original providers.
+
+The live GitHub Pages workflow publishes the root HTML and assets directly; no npm build is needed for that deployment. Test with `node --test scripts/*.test.mjs`; preview that exact path with `python3 -m http.server 8765`. The Vite/React path is secondary.
+
+[Research, privacy, recovery and known limitations](docs/prayer/daily-prayer-research.md). No website background notification service is implemented: import the calendar file and check calendar notifications, or use a phone alarm.
