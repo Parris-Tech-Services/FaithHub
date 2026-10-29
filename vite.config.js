@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 const podcastNavigation = {
   name: 'faithhub-in-flow-podcasts',
   transformIndexHtml(html, ctx) {
-    if (ctx.path?.includes('podcasts.html')) return html;
+    if (ctx.path?.includes('podcasts.html') || ctx.path?.includes('psalms.html')) return html;
     if (/href=["'](?:\.\/)?podcasts\.html["']/.test(html)) return html;
     const navigation = '<nav id="faithhub-podcast-shortcut" aria-label="Faith podcasts" ' +
       'style="display:block;margin:0 0 16px">' +
