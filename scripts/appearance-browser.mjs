@@ -35,6 +35,10 @@ try {
   });
   assert.equal(contrast.fg,'rgb(237, 244, 233)','Sanctuary dark heading must be light');
   assert.ok(contrast.bg.includes('rgb(28, 42, 32)') && !contrast.bg.includes('rgb(254, 252, 246)'), 'Sanctuary dark hero must not use pale gradient');
+  const rhythm = page.locator('.rhythm-grid .rhythm').first();
+  const rhythmColors = await rhythm.evaluate(el=>({card:getComputedStyle(el).backgroundColor, text:getComputedStyle(el.querySelector('p')).color}));
+  assert.notEqual(rhythmColors.card,rhythmColors.text,'Rhythm description must contrast against its card');
+  assert.equal(await rhythm.locator('p').isVisible(),true,'Rhythm description must be visible');
   assert.equal(errors.length,0,errors.join('; '));
   await page.screenshot({path:`faithhub-${width}.png`,fullPage:true});
   await context.close();
