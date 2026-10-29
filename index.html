@@ -257,6 +257,7 @@
       <div class="tabs" id="tabs"></div>
       <div class="tools">
         <a class="study-link" href="ab401a-genesis.html">Study AB401A · Genesis</a>
+        <a class="study-link" href="https://bible.com/bible/111/luk.11.5-13.NIV" target="_blank" rel="noopener noreferrer">Luke 11:5–13 · Ask, seek, knock</a>
         <input type="date" id="date" />
         <button id="todayBtn">Today</button>
         <button id="resetBtn">Reset</button>
@@ -270,6 +271,7 @@
       <span>Saved locally in this browser.</span>
       <span>No streaks. No guilt engine. Just daily return.</span>
     </footer>
+    <p style="font-size:0.72rem;margin:14px 4px;color:var(--muted)">Scripture taken from the Holy Bible, NEW INTERNATIONAL VERSION®, NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.® Used by permission. All rights reserved worldwide.</p>
   </main>
 
   <script>
@@ -283,7 +285,8 @@
       ['Psalm 23:1–3', 'The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures… he refreshes my soul.', 'Let God shepherd your pace today.'],
       ['Micah 6:8', 'To act justly and to love mercy and to walk humbly with your God.', 'Small faithfulness counts.'],
       ['John 15:4–5', 'Remain in me, as I also remain in you… apart from me you can do nothing.', 'Start with connection, not effort.'],
-      ['Philippians 4:6–7', 'Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.', 'Bring the anxious thing into God’s presence.']
+      ['Philippians 4:6–7', 'Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.', 'Bring the anxious thing into God’s presence.'],
+      ['Luke 11:5–13 (NIV)', 'Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.', 'Bring your needs to the Father; ask for the Holy Spirit and trust his goodness.', 'https://bible.com/bible/111/luk.11.5-13.NIV']
     ];
 
     const fruits = [
@@ -393,7 +396,7 @@
       let html = '';
 
       if (tab === 'today') {
-        html = `<section class="grid"><article class="card"><p class="eyebrow">Daily Scripture</p><h2>${scripture[0]}</h2><blockquote>“${scripture[1]}”</blockquote><p><strong>${scripture[2]}</strong></p></article><article class="card"><p class="eyebrow">Fruit for today</p><h2>${fruit[0]}</h2><p>${fruit[1]}</p><p><strong>Tiny practice:</strong> ${fruit[2]}</p></article><article class="card wide"><p class="eyebrow">Today’s rhythm</p><h2>Small faithful openings</h2><div class="rhythm-grid">${rhythms.map(r => `<button class="rhythm ${e.rhythms[r[0]] ? 'active' : ''}" data-rhythm="${r[0]}"><span class="icon">${r[1]}</span><strong>${r[2]}</strong><br><small>${r[3]}</small><p>${r[4]}</p></button>`).join('')}</div></article></section>`;
+        html = `<section class="grid"><article class="card"><p class="eyebrow">Daily Scripture</p><h2>${scripture[0]}</h2><blockquote>“${scripture[1]}”</blockquote><p><strong>${scripture[2]}</strong></p>${scripture[3] ? `<p><a href="${scripture[3]}" target="_blank" rel="noopener noreferrer">Read the full passage (NIV)</a></p>` : ''}</article><article class="card"><p class="eyebrow">Fruit for today</p><h2>${fruit[0]}</h2><p>${fruit[1]}</p><p><strong>Tiny practice:</strong> ${fruit[2]}</p></article><article class="card wide"><p class="eyebrow">Today’s rhythm</p><h2>Small faithful openings</h2><div class="rhythm-grid">${rhythms.map(r => `<button class="rhythm ${e.rhythms[r[0]] ? 'active' : ''}" data-rhythm="${r[0]}"><span class="icon">${r[1]}</span><strong>${r[2]}</strong><br><small>${r[3]}</small><p>${r[4]}</p></button>`).join('')}</div></article></section>`;
       }
 
       if (tab === 'prayer') {
