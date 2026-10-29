@@ -41,6 +41,11 @@ Your site should appear at:
 https://YOUR_USERNAME.github.io/rule-of-life-companion/
 ```
 
+## Featured Scripture
+
+- [Luke 11:5–13 (NIV) — Ask, seek, knock](https://bible.com/bible/111/luk.11.5-13.NIV). This reading is included in the daily Scripture rotation and linked permanently from FaithHub's main page.
+- [Gentle reflection and prayer](readings/luke-11-5-13.md).
+
 ## Notes
 
 - Entries are saved in local browser storage only.
