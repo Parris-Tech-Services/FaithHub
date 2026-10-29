@@ -10,9 +10,10 @@ try {
   const context=await browser.newContext({viewport:{width,height:820},deviceScaleFactor:1});
   const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const response=await page.goto('http://127.0.0.1:5173/',{waitUntil:'domcontentloaded'}); console.log('HTTP',response?.status());
-  console.log('PAGE',width,page.url(),(await page.content()).slice(0,450)); await page.locator('.appearance-settings summary').click({timeout:5000});
+  assert.equal(response?.status(),200);
   const selector=page.locator('#faithhub-style');
   for(const [value,cls] of [['original',''],['sanctuary','sanctuary-theme'],['uxpilot','uxpilot-theme']]){
+   await page.locator('.appearance-settings summary').click();
    await selector.selectOption(value);assert.equal(await selector.inputValue(),value);
    if(cls)assert.equal(await page.locator('body').evaluate((el,c)=>el.classList.contains(c === 'sanctuary-theme' ? 'style-sanctuary' : 'style-editorial'),cls),true);
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
@@ -20,6 +21,11 @@ try {
   }
   await page.reload();await page.locator('.appearance-settings summary').click();
   assert.equal(await page.locator('#faithhub-style').inputValue(),'uxpilot');
+  assert.equal(await page.locator('.hero h1').evaluate(el=>getComputedStyle(el,'::before').content),'"A quiet place"');
+  await page.locator('.appearance-settings summary').click();
+  await page.locator('#themeBtn').click();
+  assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('dark')),true);
+  assert.equal(await page.locator('.appearance-options').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(28, 42, 32)');
   assert.equal(errors.length,0,errors.join('; '));
   await page.screenshot({path:`faithhub-${width}.png`,fullPage:true});
   await context.close();
