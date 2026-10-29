@@ -40,7 +40,10 @@ function render(id) {
   count.textContent = String(note.value.length);
   setStatus('');
 }
-options.forEach(option => option.addEventListener('click', () => render(option.dataset.path)));
+options.forEach(option => option.addEventListener('click', () => {
+  // Re-clicking the active path must never wipe an unsaved reflection.
+  if (option.dataset.path !== activeId) render(option.dataset.path);
+}));
 note.addEventListener('input', () => {
   count.textContent = String(note.value.length);
   setStatus(note.value ? 'Not saved yet. Choose Save privately to keep this response.' : '');
