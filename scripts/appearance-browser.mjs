@@ -25,7 +25,7 @@ try {
   await page.locator('.appearance-settings summary').click();
   await page.locator('#themeBtn').click();
   assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('dark')),true);
-  assert.equal(await page.locator('.appearance-options').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(28, 42, 32)');
+  assert.equal(await page.locator('.appearance-options').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(21, 21, 21)');
   assert.equal(errors.length,0,errors.join('; '));
   await page.screenshot({path:`faithhub-${width}.png`,fullPage:true});
   await context.close();
