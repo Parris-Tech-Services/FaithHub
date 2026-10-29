@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="FaithHub Scripture Atlas: explore Psalms, Jesus, prayer, biblical themes and gentle reading plans.">
+<title>Scripture Atlas — FaithHub</title>
+<link rel="stylesheet" href="assets/scripture-atlas.css">
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="./">FaithHub</a>
+<nav aria-label="Study links"><a href="daily-prayer.html">Daily prayer</a><a href="prayer-practice.html">Talking with God</a><a href="#library">Passages</a><a href="#plans">Reading paths</a><a href="#journal">Journal</a></nav>
+</header>
+<main>
+<section class="hero"><p class="eyebrow">FaithHub / Scripture and prayer</p><h1>Let the Word dwell richly.</h1>
+<p class="intro">Read widely. Read in context. Meet Jesus in the whole story. Let the Psalms give language to praise, doubt, grief and hope—then respond to God honestly.</p>
+<div class="hero-actions"><button type="button" class="primary" id="today-passage">A reading for today</button><button type="button" id="random-passage">Choose another passage</button><a href="#psalm-guide" class="action-link">Pray a Psalm</a></div>
+<p class="caption">Scripture passages open in Bible.com (NIV) or Bible Gateway (public-domain World English Bible). The descriptions and prayers here are original guides, not substitutes for the actual text.</p>
+</section>
+<section id="library" class="section">
+<div class="heading"><div><p class="eyebrow">01 / Explore</p><h2>Scripture library</h2></div><p id="library-count" role="status" aria-live="polite"></p></div>
+<div class="filters"><label>Find a reference, theme or phrase<input id="search" type="search" placeholder="Psalm 23, Jesus, anxiety, lament, forgiveness…" autocomplete="off"></label><label>Theme<select id="theme-filter"><option value="">Every theme</option></select></label><label>Testament<select id="testament-filter"><option value="">Both Testaments</option><option value="Old">Old Testament</option><option value="New">New Testament</option></select></label><label>Book<select id="book-filter"><option value="">Every book</option></select></label></div>
+<div class="toolbar"><button type="button" id="psalm-only" aria-pressed="false">Psalms only</button><button type="button" id="saved-only" aria-pressed="false">Bookmarked only</button><button type="button" id="clear-filters">Clear filters</button></div>
+<div id="passage-grid" class="passage-grid" aria-label="Scripture passages"></div>
+<div class="toolbar"><button type="button" id="show-more">Show more passages</button></div>
+</section>
+<section id="study" class="section" tabindex="-1"><div class="heading"><div><p class="eyebrow">02 / Slow reading</p><h2 id="study-heading">Choose a passage</h2></div><span id="study-tag" class="tag"></span></div>
+<div class="study-panel">
+<div class="study-top"><div><p class="eyebrow" id="study-ref"></p><p class="study-title" id="study-title"></p></div><div class="toolbar"><button type="button" id="bookmark-passage" aria-pressed="false">Bookmark</button><button type="button" id="copy-ref">Copy reference</button></div></div>
+<div class="reading-buttons"><a id="read-niv" target="_blank" rel="noopener noreferrer">Read full passage — NIV</a><a id="read-web" target="_blank" rel="noopener noreferrer">Read full passage — WEB</a><button type="button" id="speak-prompt">Listen to guide</button><button type="button" id="stop-speech">Stop audio</button></div>
+<p class="quiet">WEB is the public-domain World English Bible. Use Bible.com or Bible Gateway for the complete passage, notes, audio and your preferred translation. Links are external.</p>
+<div class="study-grid">
+<article><h3>Notice the context</h3><p id="study-context"></p><p class="small">Read what comes before and after. Ask who is speaking, to whom, in what genre, and where this fits in the Bible's unfolding story.</p></article>
+<article><h3>Respond to Scripture</h3><p id="study-question"></p><p class="small">Look for what this tells us about God, people, Jesus, and a faithful response today.</p></article>
+<article><h3>Pray in response</h3><blockquote id="study-prayer"></blockquote><p class="small">An original suggested prayer. Your own words are welcome.</p></article>
+<article><h3>Practise remembering</h3><p id="memory-title">Open the Bible passage and read it slowly first.</p><button type="button" id="memory-prompt">Hide the reference and test recall</button><div id="memory-box" class="hidden"><p>Without looking, can you recall the central message and where it appears? Write it in your own words, then reopen the Bible to check accuracy.</p><button type="button" id="memory-reveal">Reveal reference</button><p id="memory-answer" class="hidden"></p></div></article>
+</div><p id="study-feedback" role="status" aria-live="polite"></p>
+<div class="section-rule"></div><h3>Also worth reading</h3><div id="related" class="related-links"></div>
+</div></section>
+<section id="psalm-guide" class="section"><div class="heading"><div><p class="eyebrow">03 / Honest prayer</p><h2>Pray the Psalms</h2></div></div><div class="psalm-section">
+<p>The Psalms contain gratitude, protest, confession, trust and silence. You do not need to make a lament end happily. Their poetic language can become a faithful starting point for your own prayer.</p>
+<div class="psalm-choices"><button type="button" data-psalm="Psalm 100">Praise</button><button type="button" data-psalm="Psalm 13">Lament</button><button type="button" data-psalm="Psalm 51">Confession</button><button type="button" data-psalm="Psalm 23">Trust</button><button type="button" data-psalm="Psalm 88">Unanswered grief</button><button type="button" data-psalm="Psalm 131">Quiet</button></div>
+<p class="small">Approach slowly: read aloud; notice an image or question; tell God what is true; leave space; return to the whole Psalm in context.</p>
+</div></section>
+<section id="plans" class="section"><div class="heading"><div><p class="eyebrow">04 / Follow a path</p><h2>Seven-day reading journeys</h2></div><p>Begin, repeat or change a path whenever you want.</p></div><div class="path-layout"><div id="plan-grid" class="plan-grid"></div><div class="plan-detail"><p class="eyebrow">Currently selected path</p><h3 id="plan-title"></h3><p id="plan-description"></p><div id="plan-days"></div><p id="plan-feedback" role="status"></p><p class="small">A mark means you chose to revisit that reading; it is not a grade, completed audio, or proof that the Bible was opened.</p></div></div></section>
+<section id="journal" class="section"><div class="heading"><div><p class="eyebrow">05 / Respond honestly</p><h2>My Scripture journal</h2></div></div><div class="journal-panel"><p>Write a question, a response, a prayer or a lament connected to <strong id="journal-ref">this passage</strong>. Nothing you type is saved until you deliberately press Save.</p><label for="journal-input">Your private reflection</label><textarea id="journal-input" rows="6" maxlength="6000" placeholder="What surprised me? What did I notice about God? What am I struggling with? What will I ask God?"></textarea><div class="toolbar"><button type="button" class="primary" id="journal-save">Save on this device</button><button type="button" id="journal-delete">Delete this note</button><button type="button" id="journal-export">Export my Scripture data</button><button type="button" id="journal-reset">Delete all Atlas data</button></div><p id="journal-feedback" role="status"></p><p class="small">Private to this browser, not encrypted. Anyone using the same browser profile may read it, and clearing browser data can erase it. Exported JSON may include sensitive reflections: store it securely. No account, server sync or analytics.</p></div></section>
+<section id="research" class="section resource-section"><div class="heading"><div><p class="eyebrow">06 / Go deeper</p><h2>Good companions</h2></div></div><div class="resource-grid"><a href="https://bibleproject.com/app/" target="_blank" rel="noopener noreferrer">BibleProject — the Bible's unified story</a><a href="https://www.youversion.com/bible-app" target="_blank" rel="noopener noreferrer">YouVersion — Bible reading, listening and plans</a><a href="https://www.biblegateway.com/app/" target="_blank" rel="noopener noreferrer">Bible Gateway — compare translations</a><a href="https://www.practicingtheway.org/resources" target="_blank" rel="noopener noreferrer">Practicing the Way — apprenticeship to Jesus</a><a href="https://ebible.org/engwebp/copyright.htm" target="_blank" rel="noopener noreferrer">World English Bible — public-domain text policy</a><a href="docs/faithhub-bible-prayer-feature-roadmap-2026-10-29.md">Numbered Scripture and prayer feature roadmap</a></div></section>
+<footer><span>FaithHub · Scripture before speculation · Prayer before performance.</span><a href="./">Return home</a></footer>
+</main>
+<script type="module" src="assets/scripture-atlas.mjs"></script>
+</body></html>
