@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Choose a Psalm for what you are carrying, read Scripture, pray honestly and discover Australian Christian music and stories.">
+<meta name="color-scheme" content="light dark">
+<title>Explore the Psalms · FaithHub</title>
+<link rel="stylesheet" href="assets/psalm-explorer.css">
+<script type="module" src="assets/psalm-explorer.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to Scripture</a>
+<div class="page">
+<header class="site-nav">
+<a class="brand" href="./" aria-label="FaithHub home">FaithHub<span aria-hidden="true"> / </span><span>Scripture</span></a>
+<nav aria-label="FaithHub">
+<a href="./">Today</a>
+<a href="daily-prayer.html">Pray</a>
+<a href="psalms.html" aria-current="page">Explore Scripture</a>
+<a href="podcasts.html">Listen</a>
+</nav>
+</header>
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+<p class="eyebrow">A place to begin · The Psalms</p>
+<h1 id="hero-title">Bring your whole heart to Scripture.</h1>
+<p class="lead">You don't need to know where to start. Choose what is true today, open a Psalm, then make space to talk with God.</p>
+<p class="note">No scores, streaks or required steps. The biblical text is linked to its publisher; reflections and prayers here are original FaithHub guidance.</p>
+</section>
+
+<section aria-labelledby="choose-title">
+<div class="section-head"><h2 id="choose-title">What are you carrying today?</h2><p>Four gentle starting points, not a personality test. Choose one and you can change it at any time.</p></div>
+<div class="topic-grid" id="psalm-options" role="group" aria-label="Choose a Scripture pathway">
+<button class="topic" type="button" data-path="rest" aria-pressed="true"><strong>I need rest</strong><small>When life feels heavy</small></button>
+<button class="topic" type="button" data-path="lament" aria-pressed="false"><strong>I feel hurt</strong><small>When I need to lament</small></button>
+<button class="topic" type="button" data-path="thanks" aria-pressed="false"><strong>I want to thank God</strong><small>When I want to give thanks</small></button>
+<button class="topic" type="button" data-path="wait" aria-pressed="false"><strong>I am waiting</strong><small>When I need courage</small></button>
+</div>
+</section>
+
+<section class="study" aria-label="Your Psalm and reflection">
+<article class="panel scripture-panel" aria-labelledby="passage-title">
+<p class="kicker">Your Scripture pathway</p>
+<h2 id="passage-title" aria-live="polite" aria-atomic="true">Psalm 23</h2>
+<p class="topic-title" id="passage-topic">God’s presence in ordinary and dark places</p>
+<p id="passage-overview">A psalm about the Lord’s shepherding presence, including in danger.</p>
+<ol class="flow-list">
+<li><strong>Notice</strong><p id="passage-notice"></p></li>
+<li><strong>Pray</strong><p id="passage-prayer"></p></li>
+<li><strong>Carry it with you</strong><p id="passage-practice"></p></li>
+</ol>
+<p id="path-cue" class="fine"></p>
+<div class="actions">
+<a class="solid-button" id="read-passage" href="https://www.bible.com/bible/111/PSA.23.NIV" target="_blank" rel="noopener noreferrer">Read Psalm 23 in the Bible App <span class="visually-hidden">(opens in a new tab)</span></a>
+<a class="link-button" id="pray-passage" href="prayer-practice.html#petition">Continue in prayer</a>
+</div>
+</article>
+
+<aside class="panel reflection" aria-labelledby="reflection-title">
+<p class="eyebrow">Optional · Only on this device</p>
+<h2 id="reflection-title">A sentence to God</h2>
+<p class="fine">You can pray without writing anything. This note stays in this browser and is saved only when you tap Save.</p>
+<label for="reflection-note">My honest response</label>
+<textarea id="reflection-note" maxlength="1200" placeholder="Jesus, today I am bringing you…" autocomplete="off"></textarea>
+<p class="fine"><span id="note-count">0</span> / 1200 characters. Changing Psalms does not automatically save your words.</p>
+<div class="actions">
+<button class="solid-button" type="button" id="save-note">Save privately</button>
+<button class="link-button" type="button" id="delete-note">Delete this note</button>
+</div>
+<p id="note-status" class="status" role="status" aria-live="polite"></p>
+<p class="fine">Shared devices: use Delete this note when finished. Clearing browser data also removes saved notes. There is no account or cross-device sync.</p>
+</aside>
+</section>
+
+<section aria-labelledby="creators-title">
+<div class="section-head">
+<h2 id="creators-title">Keep listening and learning</h2>
+<p>Some Psalms are prayers and songs. These Australian Christian creators can help you keep reflecting after reading, without bringing copyrighted audio into FaithHub.</p>
+</div>
+<div class="resources">
+<article class="resource"><span class="tag">Psalms in music</span><h3>Sons of Korah</h3><p>Hear Australian musicians give musical expression to biblical Psalms. Listen to authorised recordings on their own site.</p><a class="link-button" href="https://sonsofkorah.com/" target="_blank" rel="noopener noreferrer">Explore Sons of Korah <span class="visually-hidden">(new tab)</span></a></article>
+<article class="resource"><span class="tag">Family faith</span><h3>Colin Buchanan</h3><p>Scripture-rich songs and family resources for children and grown-ups, rooted in Australian life.</p><a class="link-button" href="https://colinbuchanan.com.au/" target="_blank" rel="noopener noreferrer">Explore Colin's music <span class="visually-hidden">(new tab)</span></a></article>
+<article class="resource"><span class="tag">Faith and Australian stories</span><h3>Paul Roe</h3><p>Explore the stories, places and people that reveal Australia's heritage of faith through The Outback Historian.</p><a class="link-button" href="https://www.theoutbackhistorian.com.au/" target="_blank" rel="noopener noreferrer">Explore Paul's stories <span class="visually-hidden">(new tab)</span></a><p class="fine" style="margin:12px 0 0"><a href="https://remembering-paul-roe.vercel.app/" target="_blank" rel="noopener noreferrer">Remembering Paul Roe</a></p></article>
+</div>
+</section>
+
+<section aria-labelledby="study-title">
+<div class="section-head"><h2 id="study-title">Go deeper when you're ready</h2><p>Keep a simple reading moment simple, or open a full study tool when you want context and cross-references.</p></div>
+<div class="pathways">
+<article class="panel"><h3>Study with e-Sword</h3><p>Explore parallel translations, commentaries, cross-references and your own study notes in the e-Sword app. FaithHub links to the official tool rather than claiming to contain its licensed modules.</p><a class="link-button" href="https://www.e-sword.net/" target="_blank" rel="noopener noreferrer">Open official e-Sword site <span class="visually-hidden">(new tab)</span></a></article>
+<article class="panel"><h3>See the Scripture atlas</h3><p>Explore FaithHub’s existing Scripture atlas for topics, reading paths and Bible context, with clear links to full chapters.</p><a class="link-button" href="scripture-atlas.html">Explore the Bible atlas</a></article>
+<article class="panel"><h3>Pray a different way</h3><p>Move from the passage into thanksgiving, lament, petition or intercession. Come back without tracking your performance.</p><a class="link-button" href="prayer-practice.html">Explore four ways to pray</a></article>
+</div>
+</section>
+<footer class="endnote">
+<p><strong>Scripture first.</strong> Full Bible passages open at the Bible App/YouVersion, where translation rights are managed by the publisher. FaithHub does not embed recordings or reproduce artists' lyrics.</p>
+<p>An independent companion, not affiliated with the linked creators, e-Sword or the Bible App. <a href="https://github.com/Parris-Tech-Services/FaithHub/blob/main/docs/UX_RESEARCH_SCRIPTURE_EXPLORER_2026-10-29.md">Design decisions and research</a>. <a href="./">Return to FaithHub</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

@@ -81,3 +81,9 @@ The live GitHub Pages workflow publishes the root HTML and assets directly; no n
 - [Numbered 100-feature roadmap](docs/FAITHHUB_FEATURE_ROADMAP.md): official app research, biblical grounding, acceptance conditions, priorities and honest implementation status.
 - [Prayer and Bible library](prayer-library.html): 12 guided practices, a seven-reading Gospel journey and four family prayer moments. Search by theme or Scripture; expand one practice and begin.
 - Tests: `node --test scripts/*.test.mjs`. The new library does not change or migrate existing saved data.
+
+## Explore the Psalms — focused UX improvement (29 October 2026)
+
+[Open the Psalm pathway](psalms.html) to choose rest, lament, gratitude or waiting; open an authorised full Psalm, follow an original prayer prompt, and optionally save a small private, browser-only reflection. The page links to Sons of Korah, Colin Buchanan, Paul Roe, e-Sword, and the existing Scripture Atlas/Prayer Practice without copying third-party recordings or Bible modules.
+
+Research and prioritised follow-ups: [FaithHub UX research](docs/UX_RESEARCH_SCRIPTURE_EXPLORER_2026-10-29.md). Tests: `node --test scripts/*.test.mjs`; static deployment automatically includes the new page and excludes the overlapping floating podcast button on it. No user research or cross-device sync is claimed.

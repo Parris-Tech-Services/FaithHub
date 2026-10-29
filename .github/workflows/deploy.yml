@@ -38,7 +38,7 @@ jobs:
           button = '''\n  <style id="faithhub-podcast-button-style">\n    #faithhub-podcast-button{position:fixed;z-index:2147483000;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);display:inline-flex;align-items:center;justify-content:center;min-width:172px;max-width:calc(100vw - 24px);padding:13px 20px;border:2px solid #fff;border-radius:999px;background:#111827;color:#fff;text-decoration:none;font:800 15px/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 12px 34px rgba(0,0,0,.55)}\n    #faithhub-podcast-button:focus-visible{outline:3px solid #38bdf8;outline-offset:3px}\n    @media(max-width:520px){#faithhub-podcast-button{bottom:max(12px,env(safe-area-inset-bottom));width:auto}}\n  </style>\n  <a id="faithhub-podcast-button" href="./podcasts.html" aria-label="Open FaithHub podcasts">Podcasts</a>\n'''
 
           for path in Path('_site').glob('*.html'):
-              if path.name == 'podcasts.html':
+              if path.name in ('podcasts.html','psalms.html'):
                   continue
               html = path.read_text(encoding='utf-8')
               if 'faithhub-podcast-button' in html:
@@ -50,6 +50,9 @@ jobs:
           PY
 
           test -f _site/prayer-practice.html
+          test -f _site/psalms.html
+          test -f _site/assets/psalm-explorer.mjs
+          grep -q 'href="psalms.html"' _site/index.html
           grep -q 'href="prayer-practice.html"' _site/index.html
           test -f _site/docs/prayer/john-mark-comer-talking-with-god-2026-10-29.md
           test -f _site/podcasts.html
