@@ -144,6 +144,7 @@ export default function App() {
       </section>
 
       <nav className="toolbar">
+        <a href="scripture-atlas.html" className="study-link">Scripture Atlas · Psalms, Scripture and reading plans</a>
         <div className="tabs">
           {['today', 'prayer', 'reflection', 'family', 'sabbath'].map((item) => (
             <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>{item}</button>
