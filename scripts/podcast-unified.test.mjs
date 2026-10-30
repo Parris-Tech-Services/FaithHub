@@ -8,7 +8,7 @@ const guide=readFileSync(new URL('../saints-prayer.html',import.meta.url),'utf8'
 const start=page.indexOf('const episodes = [');
 const end=page.indexOf('const STORAGE=',start);
 assert.ok(start!==-1&&end>start,'original Spotify catalogue and provider model exist');
-const {episodes,featured,cornerstone,catalogue}=runInNewContext(page.slice(start,end)+';({episodes,featured,catalogue})');
+const {episodes,featured,cornerstone,catalogue}=runInNewContext(page.slice(start,end)+';({episodes,featured,cornerstone,catalogue})');
 
 test('all 25 existing Spotify recordings retained and all five new resources included',()=>{
   assert.equal(episodes.length,25);
