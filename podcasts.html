@@ -86,7 +86,7 @@
 
   <section id="catalogue" aria-label="Search the podcast catalogue">
     <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Teresa, Augustine, prayer or Sabbath" /></div>
-    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
     <p id="resultCount" role="status"></p>
   </section>
   <section id="grid" class="grid"></section>
@@ -130,7 +130,12 @@ const featured = [
   {id:'apple:praying-with-saints',title:'Praying with the Saints — Evening Prayer',show:'Christ Church Plano · Fr Paul Donison',tags:['prayer','saints','anglican','evening prayer','history'],duration:'Series',provider:'apple',mode:'apple-show',url:'https://podcasts.apple.com/us/podcast/praying-with-the-saints/id1503225013',embed:'https://embed.podcasts.apple.com/us/podcast/episode/id1503225013',note:'A whole show of evening prayer and Christian biographies; choose an episode inside the player.'},
   {id:'external:pray-as-you-go',title:'Pray As You Go — Daily Guided Prayer',show:'Jesuits in Britain',tags:['prayer','jesus','ignatian','daily','scripture','meditation'],duration:'10–15 min',provider:'external',mode:'external',url:'https://prayasyougo.org/',note:'Fresh daily sessions on the publisher’s website; no single stable episode to embed here.'}
 ];
-const catalogue = featured.concat(episodes.map(function(e) {
+const cornerstone = [
+  {id:'cornerstone:original',title:'Cornerstone Community Podcast — Historical Muster teaching',show:'Cornerstone Community Australia',tags:['cornerstone','discipleship','muster','teaching','mission','laurie mcintosh'],duration:'96-episode collection',provider:'external',mode:'external',url:'https://podcasts.apple.com/au/podcast/cornerstone-community-podcast/id293630407',note:'Original public Cornerstone recordings (2008–2018). Browse and listen on the Apple Podcasts publisher page.'},
+  {id:'cornerstone:bendigo',title:'Cornerstone Community Bendigo — Conversations with Laurie',show:'Cornerstone Community Bendigo · Joshua Parris',tags:['cornerstone','discipleship','bible','muster','laurie mcintosh'],duration:'18-episode collection',provider:'external',mode:'external',url:'https://podcasts.apple.com/us/podcast/cornerstone-community-bendigo/id1631726711',note:'Historical Muster and conversations about John 1. Browse and listen at the original publisher.'},
+  {id:'cornerstone:paul-roe',title:'Paul Roe — The Character of Jesus (June 2022)',show:'Cornerstone Community Bendigo · Joshua Parris',tags:['cornerstone','paul roe','jesus','spiritual-formation','discipleship'],duration:'40 min',provider:'external',mode:'external',url:'https://podcasts.apple.com/us/podcast/cornerstone-community-bendigo/id1631658757',note:'Recorded at the Cornerstone Bendigo Yackandandah retreat. Publisher-hosted audio; no rehosting.'}
+];
+const catalogue = featured.concat(cornerstone, episodes.map(function(e) {
   return {id:'spotify:'+e[0],title:e[1],show:e[2],tags:e[3],duration:e[4],provider:'spotify',mode:'spotify',
     url:'https://open.spotify.com/episode/'+encodeURIComponent(e[0]),
     embed:'https://open.spotify.com/embed/episode/'+encodeURIComponent(e[0])+'?theme=0',note:''};
@@ -149,6 +154,7 @@ const playbackStatus=document.getElementById('playbackStatus');
 const publisherLink=document.getElementById('publisherLink');
 const randomBtn=document.getElementById('randomBtn');
 const requestedEpisode=new URLSearchParams(window.location.search).get('episode');
+const requestedTopic=new URLSearchParams(window.location.search).get('topic');
 let current=requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode)?requestedEpisode:loadCurrent();
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -217,7 +223,7 @@ function pickDifferent(){
 function matches(e){
   const q=search.value.trim().toLocaleLowerCase();
   const selected=filter.value;
-  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||selected===e.provider;
+  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||selected===e.provider;
   return inGroup&&[e.title,e.show,e.note,e.duration,categoryLabel(e)].concat(e.tags).join(' ').toLocaleLowerCase().includes(q);
 }
 function render(){
@@ -244,7 +250,8 @@ randomBtn.addEventListener('click',()=>showSelected(pickDifferent(),{scroll:fals
 document.getElementById('showPrayer').addEventListener('click',()=>{
   filter.value='prayer';search.value='';render();
 });
-if(requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode)) filter.value='prayer';
+if(requestedTopic==='cornerstone')filter.value='cornerstone';
+else if(requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode))filter.value=catalogue.find(e=>e.id===requestedEpisode)?.tags.includes('cornerstone')?'cornerstone':'prayer';
 showSelected(current);
 
 </script>
