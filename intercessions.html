@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en-AU"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A gentle, optional place to remember people before Jesus: private prayer cards, one-minute prayer, and practical love.">
+<title>Remember people in prayer · FaithHub</title>
+<link rel="stylesheet" href="assets/daily-prayer.css">
+<style>
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:18px 0}
+.cards article{border:1px solid var(--line);border-radius:16px;padding:17px;background:var(--card);min-width:0;overflow-wrap:anywhere}
+.cards h3{margin:0 0 5px}
+.cards p{margin:0 0 10px}
+.card-actions{display:flex;flex-wrap:wrap;gap:8px}
+.card-actions button{margin:0}
+.panel{padding:24px;border:1px solid var(--line);background:var(--card);border-radius:18px}
+#featured{margin:15px 0}
+#featured:focus{outline:3px solid #a56b19;outline-offset:3px}
+#featured-name{font-family:Georgia,serif;font-size:1.55rem;line-height:1.35}
+.small-print{font-size:.87rem;color:var(--muted)}
+select,input,textarea{display:block;width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;color:var(--ink);background:var(--card)}
+textarea{min-height:100px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+fieldset{border:0;padding:0}
+.note-line{font-size:.95rem}
+.session{border-left:4px solid var(--accent);padding:6px 16px}
+#save-status,#backup-status{min-height:1.4em}
+@media(max-width:700px){.cards,.form-grid{grid-template-columns:1fr}.panel{padding:18px}}
+</style></head>
+<body><main>
+<nav aria-label="FaithHub navigation"><a href="./">FaithHub home</a><a href="daily-prayer.html">Everyday prayer</a><a href="saints-prayer.html">Pray with Jesus</a><a href="prayer-library.html">Prayer library</a></nav>
+<header><p class="eyebrow">Remember · pray · love</p><h1>Bring people to Jesus.</h1>
+<p class="lead">A little place to remember people and situations in prayer. Choose one request, speak to Jesus honestly, and consider whether there's a kind, appropriate action you can take.</p>
+<a class="button primary" href="#pray">Pray for someone</a><a class="button" href="#cards">My prayer cards</a>
+<p class="small">No streaks, rankings, notifications or automatic messages. This is not a replacement for talking to people, your church or practical care.</p></header>
+<section id="pray" aria-labelledby="pray-title">
+<p class="eyebrow">One quiet moment</p><h2 id="pray-title">Who could I pray for?</h2>
+<div id="featured" class="panel" tabindex="-1">
+<p id="featured-name">You don't need to have a list to begin.</p><p id="featured-request" class="note-line">Jesus, please care for the people on my mind today.</p>
+<p id="featured-action" class="small-print"></p>
+<div class="actions"><button type="button" id="next-card">Another person or need</button><a class="button" href="#new-card">Add a prayer card</a></div>
+</div>
+<div class="session"><h3>A one-minute prayer, without a timer</h3>
+<p>Notice your feet on the floor. Breathe naturally. Say: “Lord Jesus, thank you for knowing this person. Give them what they need; give me wisdom to care without taking control. Amen.”</p>
+<p>Then choose to close the screen and go about your day. Silence and honest words are enough. <a href="https://www.bible.com/bible/111/1TI.2.1-6.NIV" target="_blank" rel="noopener noreferrer">Read 1 Timothy 2:1–6 in context</a>.</p></div>
+</section>
+<section id="new-card" aria-labelledby="form-title"><h2 id="form-title">Remember someone or something</h2>
+<p>Use initials or a general description if this device is shared. Don't enter confidential details about other people without their permission.</p>
+<form id="card-form">
+<div class="form-grid">
+<div><label for="card-name">Person or situation (required)</label><input id="card-name" type="text" maxlength="80" required placeholder="A friend, family, my neighbourhood"></div>
+<div><label for="card-category">Where this belongs</label><select id="card-category"><option value="family">Family</option><option value="friends">Friends</option><option value="church">Church</option><option value="neighbours">Neighbours</option><option value="world">Wider world</option><option value="other">Other</option></select></div>
+</div>
+<label for="card-request">What am I praying for? (optional)</label><textarea id="card-request" maxlength="280" placeholder="Jesus, please give them wisdom and peace…"></textarea>
+<label for="card-action">One possible act of care (optional)</label><input id="card-action" maxlength="160" placeholder="Check in when appropriate, make a meal, offer help">
+<p class="small-print">Actions are suggestions you choose to carry out yourself. FaithHub will never contact anyone.</p>
+<div class="actions"><button type="submit" id="save-card" class="primary">Save this card on this device</button><button type="button" id="cancel-edit" hidden>Cancel editing</button></div>
+<p id="save-status" role="status" aria-live="polite"></p></form>
+</section>
+<section id="cards" aria-labelledby="cards-title">
+<p class="eyebrow">Saved on this browser only</p><h2 id="cards-title">My prayer cards</h2>
+<p>A request can stay open for as long as it needs. You can also mark it “Entrusted” without declaring that God has answered it.</p>
+<label for="card-filter">Show cards</label><select id="card-filter"><option value="active">Still praying</option><option value="all">All saved cards</option><option value="entrusted">Entrusted / resting</option></select>
+<p id="card-count" role="status"></p>
+<div id="card-list" class="cards"></div>
+<p id="empty-cards">No cards here yet. That's fine. You can pray without saving anything.</p>
+</section>
+<section id="privacy" aria-labelledby="privacy-title"><h2 id="privacy-title">Your privacy and your backup</h2>
+<p><strong>Important:</strong> Saved prayer details are stored unencrypted in this browser’s local storage, not in a FaithHub server. Other people using this browser profile or device may be able to see them. Clearing browser data can permanently remove them; there is no cross-device sync.</p>
+<div class="actions"><button type="button" id="export-cards">Download my private backup</button>
+<label class="button" for="import-cards" style="display:inline-block;margin:4px">Import a backup <input id="import-cards" type="file" accept=".json,application/json" style="width:100%;font-size:.85rem"></label>
+<button type="button" id="delete-all">Delete every saved prayer card</button></div>
+<p id="backup-status" role="status" aria-live="polite"></p>
+<p class="small-print">Backup files contain what you've entered, including potentially sensitive information. Keep them somewhere secure and don't share them casually. An import requires confirmation. No automatic emails or sharing.</p>
+</section>
+<section><h2>Growing beyond the screen</h2>
+<p>Jesus teaches prayer and also calls his followers to love their neighbour. <a href="https://www.bible.com/bible/111/JAS.2.14-17.NIV" target="_blank" rel="noopener noreferrer">James 2:14–17</a> reminds us that practical care matters. Prayer cannot replace consent, safeguarding, medical care or the hard work of reconciliation.</p>
+<p>Want deeper guidance? <a href="prayer-library.html">Learn to intercede using Scripture</a>, <a href="daily-prayer.html">build a simple prayer rhythm</a>, or <a href="docs/christian-technology-formation-2026-10-31.md">read the researched design decisions</a>.</p>
+</section>
+<footer><p>Independent FaithHub prayer practice, inspired by the daily rhythm and private prayer cards of established Christian prayer apps. No streaks, no scores, and no requirement to save anyone's details.</p></footer>
+</main><script type="module" src="assets/intercession.mjs"></script></body></html>

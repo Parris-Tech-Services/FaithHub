@@ -68,6 +68,12 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 - There are no streaks or scores.
 - The progress bar is intentionally framed as “space made to notice God”, not spiritual performance.
 
+## Growing closer to Jesus with technology (31 October 2026)
+
+- **[Pray for people · Private intercession cards](intercessions.html):** save a request locally with initials, categories and optional follow-through actions; return to another prayer, edit, mark entrusted, resume, export/import or delete all. Includes an immediate, timer-free, one-minute prayer. All saves are explicit, local browser storage is unencrypted, and no contact messages are sent.
+- **[Research comparison and privacy decisions](docs/christian-technology-formation-2026-10-31.md):** Lectio 365, Inner Room, Echo, YouVersion, BibleProject, Hallow, Dwell and Practicing the Way; identifies already existing FaithHub capabilities, a narrow implemented gap, and future experiments with no overstated status.
+- The homepage, everyday prayer and practice library all link to the new intercession guide. The existing Scripture and podcast features remain independent. Tests: `node --test scripts/*.test.mjs` and `node scripts/intercession-browser.mjs` while serving the root site.
+
 ## Unified prayer podcast library (31 October 2026)
 
 - **[Search and listen in FaithHub](podcasts.html):** the original 25 Spotify episodes plus five verified prayer resources, with search across all sources and topic/provider filters.

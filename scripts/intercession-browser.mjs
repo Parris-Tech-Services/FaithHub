@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const BASE=(process.env.FAITHHUB_URL||'http://127.0.0.1:8765').replace(/\/$/,'');
+const browser=await chromium.launch({headless:true});
+try {
+  for(const viewport of [{width:390,height:844},{width:1366,height:900}]){
+    const context=await browser.newContext({viewport});
+    const page=await context.newPage();
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    const res=await page.goto(BASE+'/intercessions.html',{waitUntil:'domcontentloaded'});
+    assert.equal(res?.status(),200);
+    await page.getByText('0 of 0 saved cards shown').waitFor();
+    assert.equal(await page.locator('#card-list article').count(),0);
+    await page.locator('#card-name').fill('A friend');
+    await page.locator('#card-category').selectOption('friends');
+    await page.locator('#card-request').fill('Pray for wisdom');
+    await page.locator('#card-action').fill('Offer to help');
+    await page.locator('#save-card').click();
+    assert.equal(await page.locator('#card-list article').count(),1);
+    assert.match(await page.locator('#featured-name').textContent(),/A friend/);
+    assert.match(await page.locator('#featured-action').textContent(),/Offer to help/);
+    await page.reload({waitUntil:'domcontentloaded'});
+    assert.equal(await page.locator('#card-list article').count(),1,'Stored record should survive reload');
+    await page.locator('#card-list article button', {hasText:'Edit'}).click();
+    await page.locator('#card-name').fill('A trusted friend');
+    await page.locator('#save-card').click();
+    assert.match(await page.locator('#card-list').textContent(),/A trusted friend/);
+    await page.locator('#card-list article button',{hasText:'Mark entrusted'}).click();
+    assert.equal(await page.locator('#card-list article').count(),0,'Entrusted requests hidden by active filter');
+    await page.locator('#card-filter').selectOption('entrusted');
+    assert.equal(await page.locator('#card-list article').count(),1);
+    await page.locator('#card-list article button',{hasText:'Resume praying'}).click();
+    assert.equal(await page.locator('#card-list article').count(),0,'Resumed request leaves entrusted view');
+    await page.locator('#card-filter').selectOption('active');
+    assert.equal(await page.locator('#card-list article').count(),1);
+    const downloadPromise=page.waitForEvent('download');
+    await page.locator('#export-cards').click();
+    const download=await downloadPromise;
+    assert.match(download.suggestedFilename(),/faithhub-private-prayer-backup\.json/);
+    page.once('dialog',dialog=>dialog.accept());
+    await page.locator('#card-list article button',{hasText:'Delete'}).click();
+    assert.equal(await page.locator('#card-list article').count(),0);
+    page.once('dialog',dialog=>dialog.accept());
+    await page.locator('#import-cards').setInputFiles({name:'restoration.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({version:1,cards:[{id:'imported-1',name:'Recovered',category:'family',request:'Please help',action:'',status:'active',createdAt:'2026-10-31T00:00:00.000Z'}]}))});
+    await page.getByText('Imported 1 cards. Existing cards kept.').waitFor({timeout:10000});
+    assert.equal(await page.locator('#card-list article').count(),1);
+    const width=await page.evaluate(()=>({display:window.innerWidth,actual:document.documentElement.scrollWidth}));
+    assert.ok(width.actual<=width.display+1,'Horizontal overflow: '+JSON.stringify(width));
+    page.once('dialog',dialog=>dialog.accept());
+    await page.locator('#delete-all').click();
+    assert.equal(await page.locator('#card-list article').count(),0);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('faithhub-intercessions-v1')),null);
+    assert.deepEqual(errors,[],'No browser errors');
+    await context.close();
+  }
+  console.log('PASS intercession: mobile/desktop CRUD, opt-in saves, status changes, export/import, delete-all and no overflow');
+}finally{await browser.close();}

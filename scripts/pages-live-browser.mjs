@@ -94,6 +94,25 @@ try {
         const podWidth=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
         assert.ok(podWidth.scroll<=podWidth.width+1,'Public podcast page has mobile overflow: '+JSON.stringify(podWidth));
       }
+      if (EXPECTED) {
+        // Verify the newly deployed private prayer-card journey with synthetic data
+        // in the ephemeral CI browser. No user's actual prayer notes are accessed.
+        const prayerResponse=await page.goto(BASE+'intercessions.html',{waitUntil:'domcontentloaded',timeout:30000});
+        assert.equal(prayerResponse?.status(),200,'Private intercession guide must be deployed');
+        await page.getByText('0 of 0 saved cards shown').waitFor({timeout:10000});
+        await page.locator('#card-name').fill('Synthetic CI only');
+        await page.locator('#card-request').fill('A fictional prayer request for testing');
+        await page.locator('#save-card').click();
+        assert.equal(await page.locator('#card-list article').count(),1);
+        await page.reload({waitUntil:'domcontentloaded'});
+        assert.equal(await page.locator('#card-list article').count(),1,'Local card should survive reload');
+        page.once('dialog',dialog=>dialog.accept());
+        await page.locator('#delete-all').click();
+        assert.equal(await page.locator('#card-list article').count(),0);
+        assert.equal(await page.evaluate(()=>localStorage.getItem('faithhub-intercessions-v1')),null);
+        const prayerSize=await page.evaluate(()=>({actual:document.documentElement.scrollWidth,visible:window.innerWidth}));
+        assert.ok(prayerSize.actual<=prayerSize.visible+1,'Intercession page must not overflow mobile width');
+      }
       assert.deepEqual(errors,[],'No uncaught client JS errors');
       await context.close();
       const desk=await browser.newContext({viewport:{width:1366,height:900}});
@@ -112,7 +131,7 @@ try {
         expected_deploy_sha:EXPECTED||'not asserted (PR preview)',
         source_sha_observed:remoteMarker||'unmarked legacy deployment',
         checks:['home navigation','Psalm 13 interaction','authorised link','unsaved draft',
-                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','no JS errors'],
+                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','synthetic intercession card save/reload/delete when SHA bound','no JS errors'],
         caveat:'One scoped browser journey, not whole-product usability or human evaluation',
       }));
       lastError=null;

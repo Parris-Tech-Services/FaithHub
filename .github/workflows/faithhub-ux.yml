@@ -8,6 +8,9 @@ on:
       - .github/workflows/faithhub-ux.yml
       - scripts/ux-audit-2026-10-29.test.mjs
       - scripts/ux-mobile-browser.cjs
+      - intercessions.html
+      - assets/intercession.mjs
+      - scripts/intercession-browser.mjs
   workflow_dispatch:
 
 permissions:
@@ -38,6 +41,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           node scripts/ux-mobile-browser.cjs
           node scripts/podcast-unified-browser.mjs
+          node scripts/intercession-browser.mjs
       - name: Store the 390px mobile verification screenshot
         if: always()
         uses: actions/upload-artifact@v4
