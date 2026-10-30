@@ -43,6 +43,7 @@ try {
     assert.equal(await page.locator('#card-list article').count(),0);
     page.once('dialog',dialog=>dialog.accept());
     await page.locator('#import-cards').setInputFiles({name:'restoration.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({version:1,cards:[{id:'imported-1',name:'Recovered',category:'family',request:'Please help',action:'',status:'active',createdAt:'2026-10-31T00:00:00.000Z'}]}))});
+    await page.getByText('Imported 1 cards. Existing cards kept.').waitFor({timeout:10000});
     assert.equal(await page.locator('#card-list article').count(),1);
     const width=await page.evaluate(()=>({display:window.innerWidth,actual:document.documentElement.scrollWidth}));
     assert.ok(width.actual<=width.display+1,'Horizontal overflow: '+JSON.stringify(width));
