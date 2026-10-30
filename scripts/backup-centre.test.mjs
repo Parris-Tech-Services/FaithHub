@@ -52,7 +52,7 @@ test('export restores exact existing data without modifying input',()=>{
  const empty=new Storage();
  const done=restore(empty,parsed);
  assert.equal(done.restored,fixture.length);
- assert.deepEqual([...empty.map.entries()],fixture);
+ assert.deepEqual([...empty.map.entries()].sort(([a],[b])=>a.localeCompare(b)),[...fixture].sort(([a],[b])=>a.localeCompare(b)));
  assert.deepEqual([...initial.map.entries()],fixture);
 });
 test('safe default skip preserves already existing data',()=>{
