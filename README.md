@@ -68,6 +68,13 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 - There are no streaks or scores.
 - The progress bar is intentionally framed as “space made to notice God”, not spiritual performance.
 
+## Unified prayer podcast library (31 October 2026)
+
+- **[Search and listen in FaithHub](podcasts.html):** the original 25 Spotify episodes plus five verified prayer resources, with search across all sources and topic/provider filters.
+- Compatible recordings use Spotify or Apple official embeds, or the publisher's own audio; *Pray As You Go* remains an external daily-listening link. All entries provide an original-publisher fallback.
+- [Provider compatibility, privacy and test evidence](docs/prayer/podcast-provider-integration-2026-10-31.md). Podcast players load only when selected, not on page load. No third-party audio is copied to the repo.
+- Saints prayer cards [link directly to their recordings](saints-prayer.html) in the main library.
+
 ## Prayer with the saints (31 October 2026)
 
 - **[Pray with Jesus · Wisdom of the saints](saints-prayer.html):** a five-minute, non-performance-based prayer practice, six source-grounded historic teachers, the Jesus Prayer, and verified podcast episodes.
