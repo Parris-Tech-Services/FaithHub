@@ -32,6 +32,22 @@
     .card-actions .play-btn,.card-actions .open-link{flex:1 1 180px}
     .empty{display:none;border:2px solid var(--border);border-radius:18px;padding:18px}
     .note{font-size:.82rem;color:var(--muted);margin-top:10px}
+    .filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,230px);gap:12px;margin:0 0 14px}
+    .filters label{display:block;font-weight:700;font-size:.85rem;margin-bottom:5px}
+    .filters .search{margin:0}
+    .filters select{width:100%;min-height:49px;border:2px solid var(--border);border-radius:14px;background:var(--card);color:var(--fg);font:inherit;padding:10px}
+    #resultCount{font-size:.89rem;margin:4px 0 16px;color:var(--muted)}
+    #playerHost{min-height:70px}
+    #playerHost iframe{width:100%;min-height:175px;height:175px}
+    #playerHost iframe.apple-show{min-height:450px;height:450px}
+    #playerHost audio{display:block;width:100%;min-height:54px}
+    .player-placeholder{padding:17px;border:1px solid #777;border-radius:12px;color:var(--muted)}
+    .mode{font-size:.8rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:0 0 6px}
+    .card .note{margin:0 0 14px}
+    .card.playing{outline:3px solid #8bb9a0}
+    .status{font-size:.9rem;margin:10px 0 0;color:var(--muted)}
+    @media(max-width:700px){.filters{grid-template-columns:1fr}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
     button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #38bdf8;outline-offset:3px}
     @media(max-width:700px){.grid{grid-template-columns:1fr}main{width:min(100% - 18px,980px);padding-top:14px}.btn,.actions>*{width:100%}}
   </style>
@@ -40,7 +56,7 @@
 <main>
   <header>
     <p style="font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">FaithHub</p>
-    <h1>🎧 Faith podcasts</h1>
+    <h1>Faith podcasts</h1>
     <p>Prayer, Scripture, Sabbath, discipleship, family and spiritual formation. This player is built directly into FaithHub and does not depend on JoshHub or any shared podcast script.</p>
     <p><a href="daily-prayer.html#listen">Listen, then pray · Return to Jesus</a></p>
     <p><a href="saints-prayer.html">How to pray to Jesus · Listen to historic Christian teachers</a></p>
@@ -50,23 +66,28 @@
   <section class="player" aria-label="Saints on prayer">
     <div class="player-kicker">Featured prayer teaching</div>
     <h2>Learn to pray with Jesus and the saints</h2>
-    <p>Start with a 20-minute episode on Teresa of Ávila, hear Augustine explain prayer, or try a gentle guided prayer. The recordings open with their publishers, not inside this Spotify player.</p>
-    <div class="actions"><a class="btn primary" href="saints-prayer.html">Prayer guide and primary sources</a><a class="btn" href="https://podcasts.apple.com/au/podcast/st-teresa-of-%C3%A1vilas-wisdom-on-prayer/id1272460524?i=1000796088412" target="_blank" rel="noopener noreferrer">Teresa · 20 min</a><a class="btn" href="https://prayasyougo.org/" target="_blank" rel="noopener noreferrer">Free guided prayer</a></div>
+    <p>Find the Teresa and Augustine episodes, a recording of Teresa’s writing, and guided prayer alongside the existing Spotify library. Apple Podcasts and publisher-hosted audio play here when available; others open at the source.</p>
+    <div class="actions"><a class="btn primary" href="saints-prayer.html">Prayer guide and primary sources</a><a class="btn" href="#catalogue" id="showPrayer">Browse prayer recordings</a></div>
   </section>
 
   <section class="player" aria-label="FaithHub podcast player">
-    <div class="player-kicker">Now selected</div>
+    <div class="player-kicker">Listen in FaithHub, where the publisher allows it</div>
     <h2 id="playerTitle" class="player-title">Choose a podcast</h2>
     <div id="playerMeta" class="player-meta">FaithHub keeps the episode catalogue locally in this page.</div>
-    <iframe id="playerFrame" title="Spotify podcast player" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    <div id="playerHost" aria-label="Selected podcast player"><p class="player-placeholder">Choose a recording below to load its player. No external audio player loads automatically.</p></div>
+    <p id="playbackStatus" class="status" role="status" aria-live="polite"></p>
     <div class="actions">
-      <button id="randomBtn" class="play-btn primary" type="button">🎲 Different podcast</button>
-      <a id="spotifyLink" class="open-link" href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Open in Spotify ↗</a>
+      <button id="randomBtn" class="play-btn primary" type="button">Another recording</button>
+      <a id="publisherLink" class="open-link" href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Open with publisher</a>
     </div>
-    <p class="note">Spotify will only start playback after you press play.</p>
+    <p class="note">Selecting a recording loads an official Apple/Spotify player or the publisher’s own audio. Press play inside the player. Streaming is handled by the external provider, whose privacy terms apply. Provider links always remain available if playback is blocked.</p>
   </section>
 
-  <input id="search" class="search" type="search" placeholder="Search podcasts, shows or topics…" aria-label="Search faith podcasts" />
+  <section id="catalogue" aria-label="Search the podcast catalogue">
+    <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Teresa, Augustine, prayer or Sabbath" /></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <p id="resultCount" role="status"></p>
+  </section>
   <section id="grid" class="grid"></section>
   <div id="empty" class="empty">No podcasts match that search.</div>
 </main>
@@ -99,50 +120,130 @@ const episodes = [
 ['1pQo6Aehk5wfYOAxqNOrMi','The Role of the Bible','Sabbath School with Dwain Esmond',['bible','formation'],'24 min']
 ];
 
-const STORAGE='faithhub-local-podcast-v1';
+
+/* Original Spotify collection stays intact; provider-aware additions have stable IDs. */
+const featured = [
+  {id:'apple:teresa-2026',title:'St Teresa of Ávila’s Wisdom on Prayer',show:'All Things Catholic with Dr Edward Sri',tags:['prayer','saints','teresa','jesus','contemplation'],duration:'20 min',provider:'apple',mode:'apple',url:'https://podcasts.apple.com/au/podcast/st-teresa-of-%C3%A1vilas-wisdom-on-prayer/id1272460524?i=1000796088412',embed:'https://embed.podcasts.apple.com/au/podcast/episode/id1272460524?i=1000796088412',note:'Friendship with Jesus and Teresa’s teaching on inner prayer.'},
+  {id:'apple:augustine-2026',title:'Praying with Saint Augustine',show:'Catholic Saints · Augustine Institute',tags:['prayer','saints','augustine','desire'],duration:'25 min',provider:'apple',mode:'apple',url:'https://podcasts.apple.com/au/podcast/praying-with-saint-augustine/id1597828386?i=1000786452531',embed:'https://embed.podcasts.apple.com/au/podcast/episode/id1597828386?i=1000786452531',note:'Augustine on what prayer is and how to pray.'},
+  {id:'audio:teresa-ch26',title:'The Way of Perfection — Chapter 26',show:'Discerning Hearts · St Teresa of Ávila',tags:['prayer','saints','teresa','recollection','jesus'],duration:'13 min',provider:'audio',mode:'audio',url:'https://www.discerninghearts.com/catholic-podcasts/dh-daily-lenten-school-prayer-st-teresa-avila-chap-26-way-perfection/',embed:'https://media.blubrry.com/discerninghearts/www.discerninghearts.com/Audio_Book/WP-Chap26.mp3',note:'Publisher-hosted reading of Teresa’s primary text. No file is copied to FaithHub.'},
+  {id:'apple:praying-with-saints',title:'Praying with the Saints — Evening Prayer',show:'Christ Church Plano · Fr Paul Donison',tags:['prayer','saints','anglican','evening prayer','history'],duration:'Series',provider:'apple',mode:'apple-show',url:'https://podcasts.apple.com/us/podcast/praying-with-the-saints/id1503225013',embed:'https://embed.podcasts.apple.com/us/podcast/episode/id1503225013',note:'A whole show of evening prayer and Christian biographies; choose an episode inside the player.'},
+  {id:'external:pray-as-you-go',title:'Pray As You Go — Daily Guided Prayer',show:'Jesuits in Britain',tags:['prayer','jesus','ignatian','daily','scripture','meditation'],duration:'10–15 min',provider:'external',mode:'external',url:'https://prayasyougo.org/',note:'Fresh daily sessions on the publisher’s website; no single stable episode to embed here.'}
+];
+const catalogue = featured.concat(episodes.map(function(e) {
+  return {id:'spotify:'+e[0],title:e[1],show:e[2],tags:e[3],duration:e[4],provider:'spotify',mode:'spotify',
+    url:'https://open.spotify.com/episode/'+encodeURIComponent(e[0]),
+    embed:'https://open.spotify.com/embed/episode/'+encodeURIComponent(e[0])+'?theme=0',note:''};
+}));
+const STORAGE='faithhub-podcast-selected-v2';
+const LEGACY_STORAGE='faithhub-local-podcast-v1';
 const grid=document.getElementById('grid');
 const empty=document.getElementById('empty');
 const search=document.getElementById('search');
+const filter=document.getElementById('filter');
+const resultCount=document.getElementById('resultCount');
 const playerTitle=document.getElementById('playerTitle');
 const playerMeta=document.getElementById('playerMeta');
-const playerFrame=document.getElementById('playerFrame');
-const spotifyLink=document.getElementById('spotifyLink');
+const playerHost=document.getElementById('playerHost');
+const playbackStatus=document.getElementById('playbackStatus');
+const publisherLink=document.getElementById('publisherLink');
 const randomBtn=document.getElementById('randomBtn');
 let current=loadCurrent();
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function loadCurrent(){try{const n=Number(localStorage.getItem(STORAGE));return Number.isInteger(n)&&n>=0&&n<episodes.length?n:0}catch{return 0}}
-function saveCurrent(){try{localStorage.setItem(STORAGE,String(current))}catch{}}
-function spotifyUrl(e){return `https://open.spotify.com/episode/${encodeURIComponent(e[0])}`}
-function embedUrl(e){return `https://open.spotify.com/embed/episode/${encodeURIComponent(e[0])}?theme=0`}
-function play(index,{scroll=true}={}){
-  current=index;
+function loadCurrent(){
+  try{
+    const id=localStorage.getItem(STORAGE);
+    if(catalogue.some(e=>e.id===id))return id;
+    const old=Number(localStorage.getItem(LEGACY_STORAGE));
+    if(localStorage.getItem(LEGACY_STORAGE)!==null&&Number.isInteger(old)&&old>=0&&old<episodes.length)return 'spotify:'+episodes[old][0];
+  }catch{}
+  return featured[0].id;
+}
+function saveCurrent(){
+  try{localStorage.setItem(STORAGE,current)}catch{}
+}
+function categoryLabel(e){return {spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]}
+function showSelected(id,{scroll=false,load=false}={}){
+  const e=catalogue.find(row=>row.id===id);
+  if(!e)return;
+  current=e.id;
   saveCurrent();
-  const e=episodes[current];
-  playerTitle.textContent=e[1];
-  playerMeta.textContent=`${e[2]}${e[4]?' · '+e[4]:''} · ${e[3].join(' · ')}`;
-  playerFrame.src=embedUrl(e);
-  spotifyLink.href=spotifyUrl(e);
+  playerTitle.textContent=e.title;
+  playerMeta.textContent=e.show+(e.duration?' · '+e.duration:'')+' · '+categoryLabel(e);
+  publisherLink.href=e.url;
+  publisherLink.textContent='Open at '+categoryLabel(e);
+  playerHost.replaceChildren();
+  if(!load){
+    const p=document.createElement('p');
+    p.className='player-placeholder';
+    p.textContent='Selected: '+e.title+'. Choose “Listen here” below to load the external player.';
+    playerHost.append(p);
+    playbackStatus.textContent='No audio has loaded.';
+  }else if(e.mode==='external'){
+    const p=document.createElement('p');
+    p.className='player-placeholder';
+    p.textContent='This resource offers changing daily recordings. Use “Open at provider” to listen on its website.';
+    playerHost.append(p);
+    playbackStatus.textContent='An external listening link is available; no embedded player is offered.';
+  }else if(e.mode==='audio'){
+    const audio=document.createElement('audio');
+    audio.controls=true;
+    audio.preload='none';
+    audio.setAttribute('aria-label','Audio: '+e.title);
+    audio.src=e.embed;
+    playerHost.append(audio);
+    playbackStatus.textContent='Publisher-hosted audio player ready. Press play to listen.';
+  }else{
+    const frame=document.createElement('iframe');
+    frame.title=categoryLabel(e)+' player: '+e.title;
+    frame.loading='eager';
+    frame.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';
+    frame.referrerPolicy='strict-origin-when-cross-origin';
+    frame.src=e.embed;
+    if(e.mode==='apple-show')frame.className='apple-show';
+    playerHost.append(frame);
+    playbackStatus.textContent=categoryLabel(e)+' player loaded. Press play inside it; if restricted, open at the publisher.';
+  }
   render();
-  if(scroll)document.querySelector('.player').scrollIntoView({behavior:'smooth',block:'start'});
+  if(scroll)document.querySelector('.player[aria-label="FaithHub podcast player"]').scrollIntoView({behavior:'auto',block:'start'});
 }
 function pickDifferent(){
-  if(episodes.length<2)return current;
-  let next=current;
-  while(next===current)next=Math.floor(Math.random()*episodes.length);
-  return next;
+  if(catalogue.length<2)return current;
+  const others=catalogue.filter(e=>e.id!==current);
+  return others[Math.floor(Math.random()*others.length)].id;
+}
+function matches(e){
+  const q=search.value.trim().toLocaleLowerCase();
+  const selected=filter.value;
+  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||selected===e.provider;
+  return inGroup&&[e.title,e.show,e.note,e.duration,categoryLabel(e)].concat(e.tags).join(' ').toLocaleLowerCase().includes(q);
 }
 function render(){
-  const q=search.value.trim().toLowerCase();
-  const rows=episodes.map((e,i)=>({e,i})).filter(({e})=>[e[1],e[2],...e[3]].join(' ').toLowerCase().includes(q));
-  grid.innerHTML=rows.map(({e,i})=>`<article class="card ${i===current?'playing':''}"><h2>${esc(e[1])}</h2><div class="meta">${esc(e[2])}${e[4]?' · '+esc(e[4]):''}</div><div class="tags">${e[3].map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="card-actions"><button class="play-btn primary" type="button" data-play="${i}">▶ Play here</button><a class="open-link" href="${spotifyUrl(e)}" target="_blank" rel="noopener noreferrer">Spotify ↗</a></div></article>`).join('');
+  const rows=catalogue.filter(matches);
+  resultCount.textContent=rows.length+' of '+catalogue.length+' recordings shown';
+  grid.innerHTML=rows.map(function(e){
+    const isSelected=e.id===current;
+    const button=e.mode==='external'?'':'<button class="play-btn primary" type="button" data-select="'+esc(e.id)+'">Listen here</button>';
+    return '<article class="card'+(isSelected?' playing':'')+'"><p class="mode">'+esc(categoryLabel(e))+(e.mode==='external'?' · external only':' · on-page player')+'</p>'+
+      '<h2>'+esc(e.title)+'</h2><div class="meta">'+esc(e.show)+(e.duration?' · '+esc(e.duration):'')+'</div>'+
+      (e.note?'<p class="note">'+esc(e.note)+'</p>':'')+
+      '<div class="tags">'+e.tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>'+
+      '<div class="card-actions">'+button+'<a class="open-link" href="'+esc(e.url)+'" target="_blank" rel="noopener noreferrer">Open at '+esc(categoryLabel(e))+'</a></div></article>';
+  }).join('');
   empty.style.display=rows.length?'none':'block';
 }
-
-grid.addEventListener('click',event=>{const button=event.target.closest('[data-play]');if(button)play(Number(button.dataset.play))});
+grid.addEventListener('click',event=>{
+  const button=event.target.closest('button[data-select]');
+  if(button)showSelected(button.dataset.select,{scroll:true,load:true});
+});
 search.addEventListener('input',render);
-randomBtn.addEventListener('click',()=>play(pickDifferent()));
-play(current,{scroll:false});
+filter.addEventListener('change',render);
+randomBtn.addEventListener('click',()=>showSelected(pickDifferent(),{scroll:false,load:true}));
+document.getElementById('showPrayer').addEventListener('click',()=>{
+  filter.value='prayer';search.value='';render();
+});
+showSelected(current);
+
 </script>
 </body>
 </html>
