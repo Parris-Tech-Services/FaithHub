@@ -11,6 +11,9 @@ on:
       - intercessions.html
       - assets/intercession.mjs
       - scripts/intercession-browser.mjs
+      - backup.html
+      - assets/backup-centre.mjs
+      - scripts/backup-centre-browser.mjs
   workflow_dispatch:
 
 permissions:
@@ -42,6 +45,7 @@ jobs:
           node scripts/ux-mobile-browser.cjs
           node scripts/podcast-unified-browser.mjs
           node scripts/intercession-browser.mjs
+          node scripts/backup-centre-browser.mjs
           node scripts/cornerstone-browser.mjs
       - name: Store the 390px mobile verification screenshot
         if: always()

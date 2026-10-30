@@ -77,6 +77,14 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 - There are no streaks or scores.
 - The progress bar is intentionally framed as “space made to notice God”, not spiritual performance.
 
+## Protect and recover FaithHub browser data (31 October 2026)
+
+- **[Backup centre](backup.html):** audited inventory of 12 browser storage keys across the deployed static FaithHub pages and the secondary React implementation, including reflections, notes, prayer cards, saved links, appearance, and podcast selection.
+- Download a versioned JSON backup with explicit action. The file is **unencrypted** and may contain sensitive content; keep it private. Export refuses to claim completeness when unknown FaithHub keys exist.
+- Restore missing data without overwriting it (default), or explicitly opt in to replacing matching values with confirmation. Validate backup type, contents and size before writing. Attempt to roll back completed writes on storage failure; provide a clear warning if rollback fails. Restores never remove keys absent from the file.
+- Browser storage is origin-specific. This is not server sync, Gmail/Drive recovery, cross-device merging or encryption. Test: `node --test scripts/*.test.mjs` and `node scripts/backup-centre-browser.mjs` while serving the static root.
+- **[Private intercessions](intercessions.html):** saved names and prayer content now stay hidden in the page until explicitly revealed; the veil resets when the page reloads. It protects against casual shoulder-surfing, **not** someone with browser/device access.
+
 ## Growing closer to Jesus with technology (31 October 2026)
 
 - **[Pray for people · Private intercession cards](intercessions.html):** save a request locally with initials, categories and optional follow-through actions; return to another prayer, edit, mark entrusted, resume, export/import or delete all. Includes an immediate, timer-free, one-minute prayer. All saves are explicit, local browser storage is unencrypted, and no contact messages are sent.

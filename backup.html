@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Back up and restore private FaithHub browser data with an offline JSON file and explicit consent.">
+<title>Back up my FaithHub data · FaithHub</title>
+<link rel="stylesheet" href="assets/daily-prayer.css">
+<style>
+.backup-panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:18px 0}
+.backup-panel h2{margin-top:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.checkline{display:flex;align-items:flex-start;gap:9px;margin:14px 0}
+.checkline input{margin-top:6px;width:18px;height:18px;flex-shrink:0}
+button:disabled{opacity:.55;cursor:not-allowed}
+.smallprint{font-size:.9rem;color:var(--muted)}
+input[type=file]{display:block;max-width:100%;padding:9px 0}
+.notice{border-left:4px solid var(--accent);padding:8px 15px}
+#data-types{columns:2;padding-left:22px}
+#data-types li{margin:0 0 5px;break-inside:avoid}
+@media(max-width:650px){#data-types{columns:1}.backup-panel{padding:17px}}
+</style>
+</head>
+<body><main>
+<nav aria-label="FaithHub navigation"><a href="./">Home</a><a href="daily-prayer.html">Everyday prayer</a><a href="intercessions.html">Prayer cards</a><a href="scripture-atlas.html">Scripture Atlas</a></nav>
+<header>
+<p class="eyebrow">Personal data · Backup and recovery</p>
+<h1>Keep your FaithHub notes safe.</h1>
+<p class="lead">FaithHub stores your entries on this device. Make a private backup before clearing your browser, changing phones or restoring anything.</p>
+<p class="small">This works only with data saved in this browser on the current FaithHub website. It doesn't access notes on another device, your Gmail, Drive, or an installed app at a different web address.</p>
+</header>
+<section class="backup-panel" aria-labelledby="inventory-heading">
+<h2 id="inventory-heading">What is saved here?</h2>
+<p id="data-count" role="status">Checking this browser…</p>
+<ul id="data-types"></ul>
+<p id="data-empty" hidden>Nothing is saved in the recognised categories on this device.</p>
+<p id="unknown-warning" role="alert"></p>
+<p class="smallprint">The inventory covers twelve known storage types, including the secondary app and legacy podcast selection. Only the types actually present are exported. Unrecognised keys are never silently included.</p>
+</section>
+<section class="backup-panel" aria-labelledby="export-heading">
+<h2 id="export-heading">1. Download a private backup</h2>
+<p>Your download contains the saved values, including any prayer notes, names and reflections. <strong>It is not encrypted.</strong> Keep it somewhere private. FaithHub never uploads it to a server.</p>
+<div class="actions"><button id="export-all" type="button" class="primary">Download my FaithHub backup</button></div>
+<p id="backup-status" role="status" aria-live="polite"></p>
+</section>
+<section class="backup-panel" aria-labelledby="import-heading">
+<h2 id="import-heading">2. Restore a backup</h2>
+<p>Choose a FaithHub backup file. You can restore missing data without overwriting existing entries, or explicitly choose replacement. This is a browser-level restore, not a sync or merge of individual notes.</p>
+<label for="import-all">Select your private JSON backup</label>
+<input id="import-all" type="file" accept=".json,application/json">
+<label class="checkline" for="overwrite-option"><input type="checkbox" id="overwrite-option"><span><strong>Replace matching saved data</strong> (off by default). Existing records of the same type will be overwritten after another confirmation. Download a current backup first.</span></label>
+<p id="import-preview" class="notice" role="status" aria-live="polite">Choose a backup to preview what would change.</p>
+<button id="restore-all" type="button" disabled>Confirm and restore selected data</button>
+<p id="restore-status" role="status" aria-live="polite"></p>
+</section>
+<section aria-labelledby="important-heading">
+<h2 id="important-heading">Privacy and recovery limits</h2>
+<p>Browser storage and JSON backups are unencrypted. Someone with access to your device, browser profile or backup file might read them. Saving a file doesn't confirm the download is safely stored, so check your Downloads folder and keep a second secure copy if needed.</p>
+<p>Restore does not delete entries absent from a backup. It makes all selected writes only after validation and attempts to roll them back if any write fails; a device or browser failure can still prevent recovery. Reload open FaithHub tabs after restoring.</p>
+<p>For a specific notebook or prayer card, you can also use the export controls on that page. <a href="https://www.bible.com/bible/111/PRO.11.13.NIV" target="_blank" rel="noopener noreferrer">Proverbs 11:13</a> reminds us to handle confidences with care.</p>
+</section>
+<footer><p>FaithHub · Local-only personal data tools. No account, no payment and no automatic sharing or email.</p></footer>
+</main>
+<script type="module" src="assets/backup-centre.mjs"></script>
+</body></html>

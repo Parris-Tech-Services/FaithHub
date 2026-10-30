@@ -139,6 +139,33 @@ try {
         const prayerSize=await page.evaluate(()=>({actual:document.documentElement.scrollWidth,visible:window.innerWidth}));
         assert.ok(prayerSize.actual<=prayerSize.visible+1,'Intercession page must not overflow mobile width');
       }
+      if(EXPECTED){
+        // Exercise a real browser backup/restore on the exact published SHA
+        // using exclusively synthetic data, in an isolated CI browser context.
+        const backupResponse=await page.goto(BASE+'backup.html',{waitUntil:'domcontentloaded',timeout:30000});
+        assert.equal(backupResponse?.status(),200,'Backup centre must be deployed');
+        await page.getByText(/known data types currently saved/).waitFor();
+        const data=await page.evaluate(()=>{
+          localStorage.setItem('faithhub-intercessions-v1',JSON.stringify([{id:'ci-1',name:'Synthetic Person',status:'active'}]));
+          return localStorage.getItem('faithhub-intercessions-v1');
+        });
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.getByText(/known data types currently saved/).waitFor();
+        const original=await page.evaluate(()=>localStorage.getItem('faithhub-intercessions-v1'));
+        assert.equal(original,data);
+        const archive=JSON.stringify({format:'faithhub-browser-backup',version:1,
+          createdAt:'2026-10-31T00:00:00.000Z',records:{'faithhub-intercessions-v1':original}});
+        await page.evaluate(()=>localStorage.removeItem('faithhub-intercessions-v1'));
+        await page.locator('#import-all').setInputFiles({name:'synthetic-ci-only.json',mimeType:'application/json',buffer:Buffer.from(archive)});
+        await page.getByText(/This mode would restore 1/).waitFor();
+        page.once('dialog',dialog=>dialog.accept());
+        await page.locator('#restore-all').click();
+        await page.getByText(/Restored 1 data type/).waitFor();
+        assert.equal(await page.evaluate(()=>localStorage.getItem('faithhub-intercessions-v1')),original);
+        const width=await page.evaluate(()=>({actual:document.documentElement.scrollWidth,visible:innerWidth}));
+        assert.ok(width.actual<=width.visible+1,'Backup page mobile overflow '+JSON.stringify(width));
+        await page.evaluate(()=>localStorage.removeItem('faithhub-intercessions-v1'));
+      }
       assert.deepEqual(errors,[],'No uncaught client JS errors');
       await context.close();
       const desk=await browser.newContext({viewport:{width:1366,height:900}});
@@ -157,7 +184,7 @@ try {
         expected_deploy_sha:EXPECTED||'not asserted (PR preview)',
         source_sha_observed:remoteMarker||'unmarked legacy deployment',
         checks:['home navigation','Psalm 13 interaction','authorised link','unsaved draft',
-                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','synthetic intercession card save/reload/delete when SHA bound','Cornerstone course navigation, quiz, local reflection and deployed SHA','no JS errors'],
+                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','synthetic intercession card save/reload/delete when SHA bound','Cornerstone course navigation, quiz, local reflection and deployed SHA','synthetic cross-page backup restore when SHA bound','no JS errors'],
         caveat:'One scoped browser journey, not whole-product usability or human evaluation',
       }));
       lastError=null;

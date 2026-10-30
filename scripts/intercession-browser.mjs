@@ -18,10 +18,15 @@ try {
     await page.locator('#card-action').fill('Offer to help');
     await page.locator('#save-card').click();
     assert.equal(await page.locator('#card-list article').count(),1);
+    assert.match(await page.locator('#featured-name').textContent(),/hidden/i);
+    assert.equal(await page.getByText('A friend').count(),0,'Names must not appear before reveal');
+    await page.locator('#privacy-toggle').click();
     assert.match(await page.locator('#featured-name').textContent(),/A friend/);
     assert.match(await page.locator('#featured-action').textContent(),/Offer to help/);
     await page.reload({waitUntil:'domcontentloaded'});
     assert.equal(await page.locator('#card-list article').count(),1,'Stored record should survive reload');
+    assert.equal(await page.getByText('A friend').count(),0,'Privacy veil resets on every reload');
+    await page.locator('#privacy-toggle').click();
     await page.locator('#card-list article button', {hasText:'Edit'}).click();
     await page.locator('#card-name').fill('A trusted friend');
     await page.locator('#save-card').click();
