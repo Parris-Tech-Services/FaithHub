@@ -56,6 +56,20 @@ try {
         visible:window.innerWidth, actual:document.documentElement.scrollWidth,
       }));
       assert.ok(widths.actual<=widths.visible+1,'No mobile horizontal overflow: '+JSON.stringify(widths));
+      // After a verified main deployment, exercise the newly published prayer guide
+      // on an actual mobile Chromium page, not just its Git source.
+      if (EXPECTED) {
+        const saints = await page.goto(BASE+'saints-prayer.html',{waitUntil:'domcontentloaded',timeout:30000});
+        assert.equal(saints?.status(),200,'The saints prayer guide must be publicly published');
+        await page.getByRole('heading',{name:'Jesus, teach me to pray.'}).waitFor();
+        await page.getByRole('heading',{name:'What the saints taught about prayer'}).waitFor();
+        const augustine = await page.getByRole('link',{name:"Read Augustine's letter"}).getAttribute('href');
+        assert.equal(augustine,'https://www.newadvent.org/fathers/1102130.htm');
+        const teresa = await page.getByRole('link',{name:'Listen on Apple Podcasts'}).first().getAttribute('href');
+        assert.match(teresa,/i=1000796088412/);
+        const saintsWidth = await page.evaluate(()=>({actual:document.documentElement.scrollWidth,visible:window.innerWidth}));
+        assert.ok(saintsWidth.actual<=saintsWidth.visible+1,'Saints guide overflows mobile: '+JSON.stringify(saintsWidth));
+      }
       assert.deepEqual(errors,[],'No uncaught client JS errors');
       await context.close();
       const desk=await browser.newContext({viewport:{width:1366,height:900}});
@@ -74,7 +88,7 @@ try {
         expected_deploy_sha:EXPECTED||'not asserted (PR preview)',
         source_sha_observed:remoteMarker||'unmarked legacy deployment',
         checks:['home navigation','Psalm 13 interaction','authorised link','unsaved draft',
-                'save/reload/delete','no mobile overflow','desktop links','no JS errors'],
+                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','no JS errors'],
         caveat:'One scoped browser journey, not whole-product usability or human evaluation',
       }));
       lastError=null;
