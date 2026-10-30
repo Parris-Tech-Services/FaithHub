@@ -73,7 +73,7 @@ Priority / inspiration: Now / S1, S2, S3.
 15. **Comfortable embodied prayer** — Existing. Biblical grounding: Romans 12:1. Acceptance: Offer sitting, standing and open hands without physical requirements.
 16. **Pray the room** — Existing. Biblical grounding: 1 Timothy 2:1. Acceptance: Invite intercession for people nearby without declaring thoughts divine messages.
 17. **Coming-home prayer** — Existing. Biblical grounding: Colossians 3:12–14. Acceptance: Connect the transition home with patience, truth and gentleness.
-18. **One-minute low-energy mode** — Planned. Biblical grounding: Romans 8:26–27. Acceptance: Offer a single accessible prayer and an immediate exit; no minimum duration.
+18. **One-minute low-energy mode** — Implemented. Biblical grounding: Romans 8:26–27. Acceptance: Offer a single accessible prayer and an immediate exit; no minimum duration.
 19. **Editable quiet hours** — Planned. Biblical grounding: Mark 2:27. Acceptance: Respect chosen rest windows and daylight-saving changes before push reminders ship.
 20. **Restart without debt** — Planned. Biblical grounding: Lamentations 3:22–24. Acceptance: Let users resume a plan without overdue warnings, streak loss or guilt copy.
 
@@ -96,15 +96,15 @@ Priority / inspiration: Next / S4, S5.
 
 Priority / inspiration: Next / S2, S3.
 
-31. **Private prayer cards** — Planned. Biblical grounding: Philippians 1:3–5. Acceptance: Create, edit and archive requests locally with explicit saving and recovery.
-32. **Prayer categories** — Planned. Biblical grounding: Ephesians 6:18. Acceptance: Organise family, friends, church, neighbours and world without quotas.
-33. **Gentle request rotation** — Planned. Biblical grounding: Colossians 4:2. Acceptance: Rotate selected cards transparently; no claim God chose the next card.
+31. **Private prayer cards** — Implemented. Biblical grounding: Philippians 1:3–5. Acceptance: Create, edit and archive requests locally with explicit saving and recovery.
+32. **Prayer categories** — Implemented. Biblical grounding: Ephesians 6:18. Acceptance: Organise family, friends, church, neighbours and world without quotas.
+33. **Gentle request rotation** — Implemented. Biblical grounding: Colossians 4:2. Acceptance: Rotate selected cards transparently; no claim God chose the next card.
 34. **Time-sensitive requests** — Planned. Biblical grounding: Romans 12:15. Acceptance: Support an event date and expiry review rather than stale urgent labels.
 35. **Encouragement history** — Planned. Biblical grounding: Psalm 77:11–12. Acceptance: Record user-reported encouragement without asserting verified divine causation.
-36. **Unanswered prayer space** — Planned. Biblical grounding: Psalm 88. Acceptance: Keep unresolved requests without marking people spiritually unsuccessful.
+36. **Unanswered prayer space** — Implemented. Biblical grounding: Psalm 88. Acceptance: Keep unresolved requests without marking people spiritually unsuccessful.
 37. **Request update timeline** — Planned. Biblical grounding: Philippians 4:6–7. Acceptance: Preserve dated edits and allow correction without losing previous meaning.
 38. **Anonymous display names** — Planned. Biblical grounding: Matthew 6:6. Acceptance: Permit initials and hide details on shared screens by default.
-39. **Prayer follow-through** — Planned. Biblical grounding: James 2:14–17. Acceptance: Suggest a voluntary practical action without automatic contact or messages.
+39. **Prayer follow-through** — Implemented. Biblical grounding: James 2:14–17. Acceptance: Suggest a voluntary practical action without automatic contact or messages.
 40. **Mission and world prayer** — Planned. Biblical grounding: 1 Timothy 2:1–4. Acceptance: Use dated, attributed public information and avoid publishing private missionary details.
 
 ### Formation and fruit of the Spirit
