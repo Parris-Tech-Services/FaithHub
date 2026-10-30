@@ -70,6 +70,28 @@ try {
         const saintsWidth = await page.evaluate(()=>({actual:document.documentElement.scrollWidth,visible:window.innerWidth}));
         assert.ok(saintsWidth.actual<=saintsWidth.visible+1,'Saints guide overflows mobile: '+JSON.stringify(saintsWidth));
       }
+      if (EXPECTED) {
+        // Confirm the exact deployed commit serves the unified podcast catalogue
+        // and exposes the correct on-demand provider players on mobile.
+        const pod=await page.goto(BASE+'podcasts.html',{waitUntil:'domcontentloaded',timeout:30000});
+        assert.equal(pod?.status(),200,'Public unified podcast catalogue missing');
+        await page.getByText('30 of 30 recordings shown').waitFor({timeout:10000});
+        assert.equal(await page.locator('#grid article').count(),30);
+        assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,
+          'Third-party embeds must not preload before listener chooses an episode');
+        await page.locator('#search').fill('Augustine');
+        assert.equal(await page.locator('#grid article').count(),1);
+        await page.locator('#grid [data-select]').click();
+        assert.match(await page.locator('#playerHost iframe').getAttribute('src'),
+          /embed\.podcasts\.apple\.com\/au\/podcast\/episode\/id1597828386/);
+        await page.locator('#filter').selectOption('audio');
+        await page.locator('#search').fill('');
+        await page.locator('#grid [data-select]').click();
+        assert.equal(await page.locator('#playerHost iframe').count(),0);
+        assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
+        const podWidth=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
+        assert.ok(podWidth.scroll<=podWidth.width+1,'Public podcast page has mobile overflow: '+JSON.stringify(podWidth));
+      }
       assert.deepEqual(errors,[],'No uncaught client JS errors');
       await context.close();
       const desk=await browser.newContext({viewport:{width:1366,height:900}});
