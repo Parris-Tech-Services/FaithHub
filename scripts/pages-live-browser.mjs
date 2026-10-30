@@ -65,7 +65,9 @@ try {
         await page.getByRole('heading',{name:'What the saints taught about prayer'}).waitFor();
         const augustine = await page.getByRole('link',{name:"Read Augustine's letter"}).getAttribute('href');
         assert.equal(augustine,'https://www.newadvent.org/fathers/1102130.htm');
-        const teresa = await page.getByRole('link',{name:'Listen on Apple Podcasts'}).first().getAttribute('href');
+        const teresaInFaithHub = await page.getByRole('link',{name:'Listen in FaithHub'}).first().getAttribute('href');
+        assert.equal(teresaInFaithHub,'podcasts.html?episode=apple%3Ateresa-2026');
+        const teresa = await page.getByRole('link',{name:'Open in Apple Podcasts'}).first().getAttribute('href');
         assert.match(teresa,/i=1000796088412/);
         const saintsWidth = await page.evaluate(()=>({actual:document.documentElement.scrollWidth,visible:window.innerWidth}));
         assert.ok(saintsWidth.actual<=saintsWidth.visible+1,'Saints guide overflows mobile: '+JSON.stringify(saintsWidth));
