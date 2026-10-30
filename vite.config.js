@@ -32,6 +32,7 @@ export default defineConfig({
         prayer: fileURLToPath(new URL('./prayer-practice.html', import.meta.url)),
         atlas: fileURLToPath(new URL('./scripture-atlas.html', import.meta.url)),
         psalms: fileURLToPath(new URL('./psalms.html', import.meta.url)),
+        cornerstone: fileURLToPath(new URL('./cornerstone-teachings.html', import.meta.url)),
       },
     },
   },
