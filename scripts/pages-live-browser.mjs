@@ -105,7 +105,7 @@ try {
         assert.equal(await page.locator('#resources .resource').count(),11);
         assert.equal(await page.locator('#pathways button').count(),6);
         await page.getByRole('button',{name:'Romans 12',exact:true}).click();
-        assert.match(await page.locator('#verseLink').getAttribute('href'),/ROM\\.12\\.9-13/);
+        assert.ok((await page.locator('#verseLink').getAttribute('href')).includes('ROM.12.9-13'));
         await page.locator('input[name="cornerstone-answer"][value="1"]').check();
         await page.locator('#check').click();
         assert.match(await page.locator('#feedback').textContent(),/That's right/);
