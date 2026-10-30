@@ -68,6 +68,12 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 - There are no streaks or scores.
 - The progress bar is intentionally framed as “space made to notice God”, not spiritual performance.
 
+## Prayer with the saints (31 October 2026)
+
+- **[Pray with Jesus · Wisdom of the saints](saints-prayer.html):** a five-minute, non-performance-based prayer practice, six source-grounded historic teachers, the Jesus Prayer, and verified podcast episodes.
+- **[Primary-source research and podcast verification](docs/prayer/saints-prayer-research-2026-10-31.md):** Scripture and historic texts across Christian traditions, plus editorial cautions and episode links.
+- The main page, existing everyday prayer guide, prayer library and podcast page all link to this new practice. Static-only; no notes, tracking, audio rehosting or new dependencies. Test using `node --test scripts/*.test.mjs`.
+
 ## Everyday prayer
 
 [Jesus, here with me](daily-prayer.html) offers seven everyday prayer moments, one saved daily anchor, a calendar reminder download, all nine fruits of the Spirit with practical responses, free prayer apps and a private resource shelf. Import a version-1 shelf JSON or add your own HTTPS links. Use **Back up my shelf** before clearing browser data; re-import merges without deleting existing links. Files and emails themselves remain with their original providers.
