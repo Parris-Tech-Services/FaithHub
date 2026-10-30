@@ -58,3 +58,9 @@ test('browser script parses and privacy controls are implemented', () => {
   assert.doesNotMatch(html, /drive\.google\.com|docs\.google\.com|mail\.google\.com/);
   assert.doesNotMatch(html, /<iframe|<audio\s/i);
 });
+
+test('GitHub Pages binds Cornerstone to its exact published source SHA', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/deploy.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /for filename in \("index\.html", "psalms\.html", "cornerstone-teachings\.html", "backup\.html"\)/);
+  assert.match(workflow, /faithhub-deploy-sha/);
+});

@@ -89,7 +89,7 @@ jobs:
           from pathlib import Path
           sha=os.environ["DEPLOY_SOURCE_SHA"]
           assert re.fullmatch(r"[0-9a-f]{40}",sha)
-          for filename in ("index.html", "psalms.html"):
+          for filename in ("index.html", "psalms.html", "cornerstone-teachings.html", "backup.html"):
               p=Path("_site")/filename
               html=p.read_text(encoding="utf-8")
               assert re.search(r"<head\s*>",html,re.I),filename
