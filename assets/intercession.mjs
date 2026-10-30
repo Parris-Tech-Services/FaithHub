@@ -43,6 +43,7 @@ if(typeof document!=='undefined'){
   const form=get('card-form');
   let cards=parseCards(localStorage.getItem(STORAGE_KEY));
   let editingId=null;
+  let detailsVisible=false;
   const today=new Date();
   const day=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
   let position=dailyStartIndex(activeCards(cards),day);
@@ -66,6 +67,7 @@ if(typeof document!=='undefined'){
       return;
     }
     position=((position%active.length)+active.length)%active.length;
+    if(!detailsVisible){name.textContent='Prayer details hidden on this screen';need.textContent='Choose Show saved prayer details when you are somewhere private.';action.textContent='Your browser data is not encrypted.';return;}
     const card=active[position];
     name.textContent=card.name;
     need.textContent=card.request||'Jesus, please care for this person or situation.';
@@ -77,6 +79,15 @@ if(typeof document!=='undefined'){
     const visible=cards.filter(c=>kind==='all'||c.status===kind).sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
     get('card-count').textContent=visible.length+' of '+cards.length+' saved cards shown';
     get('empty-cards').hidden=visible.length>0;
+    if(!detailsVisible){
+      for(const c of visible){
+        const article=document.createElement('article');
+        const h=document.createElement('h3');h.textContent='Private prayer card';
+        const p=document.createElement('p');p.textContent='Hidden until you reveal saved details.';
+        article.append(h,p);list.append(article);
+      }
+      showFeatured();return;
+    }
     for(const c of visible){
       const article=document.createElement('article');
       const heading=document.createElement('h3');heading.textContent=c.name;
@@ -122,6 +133,18 @@ if(typeof document!=='undefined'){
     if(persist(next)){clearForm();position=dailyStartIndex(activeCards(cards),day);render();message('save-status','Saved on this browser. No message was sent.');}
   });
   get('cancel-edit').addEventListener('click',()=>{clearForm();message('save-status','Editing cancelled.');});
+  get('privacy-toggle').addEventListener('click',()=>{
+    if(detailsVisible){
+      const hasTyped=[get('card-name').value,get('card-request').value,get('card-action').value].some(s=>s.trim());
+      if(hasTyped&&!window.confirm('Hide saved details and clear your unsaved form text?'))return;
+      clearForm();
+    }
+    detailsVisible=!detailsVisible;
+    get('privacy-toggle').setAttribute('aria-pressed',String(detailsVisible));
+    get('privacy-toggle').textContent=detailsVisible?'Hide saved prayer details':'Show saved prayer details';
+    message('privacy-visibility-status',detailsVisible?'Prayer card details are visible on this screen. Hide them before sharing your device.':'Saved prayer details hidden on screen. This does not encrypt browser storage.');
+    render();
+  });
   get('next-card').addEventListener('click',()=>{
     position+=1;showFeatured();get('featured').focus();
   });

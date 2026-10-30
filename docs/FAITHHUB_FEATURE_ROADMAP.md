@@ -103,7 +103,7 @@ Priority / inspiration: Next / S2, S3.
 35. **Encouragement history** — Planned. Biblical grounding: Psalm 77:11–12. Acceptance: Record user-reported encouragement without asserting verified divine causation.
 36. **Unanswered prayer space** — Implemented. Biblical grounding: Psalm 88. Acceptance: Keep unresolved requests without marking people spiritually unsuccessful.
 37. **Request update timeline** — Planned. Biblical grounding: Philippians 4:6–7. Acceptance: Preserve dated edits and allow correction without losing previous meaning.
-38. **Anonymous display names** — Planned. Biblical grounding: Matthew 6:6. Acceptance: Permit initials and hide details on shared screens by default.
+38. **Anonymous display names** — Implemented. Biblical grounding: Matthew 6:6. Acceptance: Permit initials and hide details on shared screens by default.
 39. **Prayer follow-through** — Implemented. Biblical grounding: James 2:14–17. Acceptance: Suggest a voluntary practical action without automatic contact or messages.
 40. **Mission and world prayer** — Planned. Biblical grounding: 1 Timothy 2:1–4. Acceptance: Use dated, attributed public information and avoid publishing private missionary details.
 
@@ -171,7 +171,7 @@ Priority / inspiration: Next / S1, S4, S5.
 
 Priority / inspiration: Foundation / engineering requirements, not Bible commands.
 
-81. **All-data export and restore** — Planned. Biblical grounding: Proverbs 27:23. Acceptance: Round-trip all personal notes, cards and settings; verify before migration.
+81. **All-data export and restore** — Implemented. Biblical grounding: Proverbs 27:23. Acceptance: Round-trip all personal notes, cards and settings; verify before migration.
 82. **Encrypted cross-device sync** — Gated. Biblical grounding: Proverbs 11:13. Acceptance: Threat-model encryption, recovery, deletion and per-user access before launch.
 83. **Offline prayer library** — Planned. Biblical grounding: Deuteronomy 6:6–9. Acceptance: Cache approved public content, label offline status and test update recovery.
 84. **Installable app** — Planned. Biblical grounding: Deuteronomy 6:6–9. Acceptance: Verify supported-device install and offline behaviour; no unsupported promises.

@@ -25,11 +25,15 @@ fieldset{border:0;padding:0}
 @media(max-width:700px){.cards,.form-grid{grid-template-columns:1fr}.panel{padding:18px}}
 </style></head>
 <body><main>
-<nav aria-label="FaithHub navigation"><a href="./">FaithHub home</a><a href="daily-prayer.html">Everyday prayer</a><a href="saints-prayer.html">Pray with Jesus</a><a href="prayer-library.html">Prayer library</a></nav>
+<nav aria-label="FaithHub navigation"><a href="./">FaithHub home</a><a href="daily-prayer.html">Everyday prayer</a><a href="saints-prayer.html">Pray with Jesus</a><a href="prayer-library.html">Prayer library</a><a href="backup.html">Back up all FaithHub notes</a></nav>
 <header><p class="eyebrow">Remember · pray · love</p><h1>Bring people to Jesus.</h1>
 <p class="lead">A little place to remember people and situations in prayer. Choose one request, speak to Jesus honestly, and consider whether there's a kind, appropriate action you can take.</p>
 <a class="button primary" href="#pray">Pray for someone</a><a class="button" href="#cards">My prayer cards</a>
 <p class="small">No streaks, rankings, notifications or automatic messages. This is not a replacement for talking to people, your church or practical care.</p></header>
+<section class="panel" aria-label="Shared screen privacy" style="margin:10px 0 20px">
+<button type="button" id="privacy-toggle" aria-pressed="false">Show saved prayer details</button>
+<p id="privacy-visibility-status" role="status" aria-live="polite">Saved names and prayer requests stay hidden on screen until you choose to reveal them. This does not encrypt browser storage.</p>
+</section>
 <section id="pray" aria-labelledby="pray-title">
 <p class="eyebrow">One quiet moment</p><h2 id="pray-title">Who could I pray for?</h2>
 <div id="featured" class="panel" tabindex="-1">
@@ -63,7 +67,7 @@ fieldset{border:0;padding:0}
 <p id="empty-cards">No cards here yet. That's fine. You can pray without saving anything.</p>
 </section>
 <section id="privacy" aria-labelledby="privacy-title"><h2 id="privacy-title">Your privacy and your backup</h2>
-<p><strong>Important:</strong> Saved prayer details are stored unencrypted in this browser’s local storage, not in a FaithHub server. Other people using this browser profile or device may be able to see them. Clearing browser data can permanently remove them; there is no cross-device sync.</p>
+<p><strong>Important:</strong> The shared-screen button only conceals displayed details; it does not encrypt them. Saved prayer details are stored unencrypted in this browser’s local storage, not in a FaithHub server. Other people using this browser profile or device may be able to see them. Clearing browser data can permanently remove them; there is no cross-device sync.</p>
 <div class="actions"><button type="button" id="export-cards">Download my private backup</button>
 <label class="button" for="import-cards" style="display:inline-block;margin:4px">Import a backup <input id="import-cards" type="file" accept=".json,application/json" style="width:100%;font-size:.85rem"></label>
 <button type="button" id="delete-all">Delete every saved prayer card</button></div>
