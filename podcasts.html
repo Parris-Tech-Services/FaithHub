@@ -147,7 +147,8 @@ const playerHost=document.getElementById('playerHost');
 const playbackStatus=document.getElementById('playbackStatus');
 const publisherLink=document.getElementById('publisherLink');
 const randomBtn=document.getElementById('randomBtn');
-let current=loadCurrent();
+const requestedEpisode=new URLSearchParams(window.location.search).get('episode');
+let current=requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode)?requestedEpisode:loadCurrent();
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function loadCurrent(){
@@ -242,6 +243,7 @@ randomBtn.addEventListener('click',()=>showSelected(pickDifferent(),{scroll:fals
 document.getElementById('showPrayer').addEventListener('click',()=>{
   filter.value='prayer';search.value='';render();
 });
+if(requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode)) filter.value='prayer';
 showSelected(current);
 
 </script>
