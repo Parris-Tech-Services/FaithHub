@@ -8,13 +8,16 @@ const guide=readFileSync(new URL('../saints-prayer.html',import.meta.url),'utf8'
 const start=page.indexOf('const episodes = [');
 const end=page.indexOf('const STORAGE=',start);
 assert.ok(start!==-1&&end>start,'original Spotify catalogue and provider model exist');
-const {episodes,featured,catalogue}=runInNewContext(page.slice(start,end)+';({episodes,featured,catalogue})');
+const {episodes,featured,cornerstone,catalogue}=runInNewContext(page.slice(start,end)+';({episodes,featured,cornerstone,catalogue})');
 
 test('all 25 existing Spotify recordings retained and all five new resources included',()=>{
   assert.equal(episodes.length,25);
   assert.equal(featured.length,5);
-  assert.equal(catalogue.length,30);
-  assert.equal(new Set(catalogue.map(e=>e.id)).size,30);
+  assert.equal(cornerstone.length,3);
+  assert.ok(cornerstone.every(e=>e.tags.includes('cornerstone')&&e.mode==='external'));
+  assert.ok(cornerstone.some(e=>e.title.includes('Paul Roe')));
+  assert.equal(catalogue.length,33);
+  assert.equal(new Set(catalogue.map(e=>e.id)).size,33);
   for(const [id,title,provider,mode] of [
     ['apple:teresa-2026','St Teresa of Ávila’s Wisdom on Prayer','apple','apple'],
     ['apple:augustine-2026','Praying with Saint Augustine','apple','apple'],

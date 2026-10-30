@@ -75,6 +75,9 @@ jobs:
           grep -q 'id="faithhub-podcast-shortcut"' _site/prayer-practice.html
           ! grep -q 'faithhub-podcast-button' _site/index.html
           grep -q 'Faith podcasts' _site/podcasts.html
+          test -f _site/cornerstone-teachings.html
+          grep -q 'href="cornerstone-teachings.html"' _site/index.html
+          grep -q 'Cornerstone Teachings' _site/cornerstone-teachings.html
 
       - name: Bind generated public pages to this exact Git source SHA
         shell: bash

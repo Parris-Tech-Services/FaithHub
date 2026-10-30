@@ -158,6 +158,7 @@ export default function App() {
       <nav className="toolbar">
         <a href="scripture-atlas.html" className="study-link">Scripture Atlas · Psalms, Scripture and reading plans</a>
         <a href="podcasts.html" className="study-link">Faith podcasts</a>
+        <a href="cornerstone-teachings.html" className="study-link">Cornerstone Teachings · Courses & recordings</a>
         <div className="tabs">
           {['today', 'prayer', 'reflection', 'family', 'sabbath'].map((item) => (
             <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>{item}</button>

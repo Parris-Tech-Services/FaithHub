@@ -11,8 +11,8 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   const response=await page.goto(base+'/podcasts.html',{waitUntil:'domcontentloaded',timeout:30000});
   assert.equal(response?.status(),200);
-  await page.getByText('30 of 30 recordings shown').waitFor();
-  assert.equal(await page.locator('#grid article').count(),30);
+  await page.getByText('33 of 33 recordings shown').waitFor();
+  assert.equal(await page.locator('#grid article').count(),33);
   assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,'No provider embed before selection');
   await page.locator('#search').fill('Augustine');
   assert.equal(await page.locator('#grid article').count(),1);
@@ -27,9 +27,15 @@ try{
   assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
   assert.equal(await page.locator('#publisherLink').getAttribute('href'),'https://www.discerninghearts.com/catholic-podcasts/dh-daily-lenten-school-prayer-st-teresa-avila-chap-26-way-perfection/');
   await page.locator('#filter').selectOption('external');
-  assert.equal(await page.locator('#grid article').count(),1);
+  assert.equal(await page.locator('#grid article').count(),4,'Existing external prayer and three Cornerstone collections');
   assert.equal(await page.locator('#grid [data-select]').count(),0,'External-only content should never claim playable audio');
+  await page.locator('#search').fill('Pray As You Go');
+  assert.equal(await page.locator('#grid article').count(),1);
   assert.equal(await page.locator('#grid article a').getAttribute('href'),'https://prayasyougo.org/');
+  await page.locator('#search').fill('');
+  await page.locator('#filter').selectOption('cornerstone');
+  assert.equal(await page.locator('#grid article').count(),3);
+  assert.equal(await page.locator('#grid [data-select]').count(),0,'Cornerstone links open at official publisher, not fake embeds');
   await page.locator('#filter').selectOption('spotify');
   assert.equal(await page.locator('#grid article').count(),25);
   await page.locator('#grid [data-select]').first().click();
@@ -60,11 +66,11 @@ try{
   const desktop=await browser.newContext({viewport:{width:1366,height:900}});
   const dp=await desktop.newPage();
   await dp.goto(base+'/podcasts.html',{waitUntil:'domcontentloaded'});
-  assert.equal(await dp.locator('#grid article').count(),30);
+  assert.equal(await dp.locator('#grid article').count(),33);
   await dp.locator('#filter').selectOption('prayer');
   assert.ok(await dp.locator('#grid article').count()>=5);
   await desktop.close();
-  console.log('PASS: unified 30-item catalogue, Apple/Spotify/publisher player selection, external fallback, search, mobile, desktop, deep links and legacy migration.');
+  console.log('PASS: unified 33-item catalogue, Apple/Spotify/publisher player selection, external fallback, search, mobile, desktop, deep links and legacy migration.');
 } finally{
   await browser.close();
 }

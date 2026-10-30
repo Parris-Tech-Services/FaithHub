@@ -77,8 +77,8 @@ try {
         // and exposes the correct on-demand provider players on mobile.
         const pod=await page.goto(BASE+'podcasts.html',{waitUntil:'domcontentloaded',timeout:30000});
         assert.equal(pod?.status(),200,'Public unified podcast catalogue missing');
-        await page.getByText('30 of 30 recordings shown').waitFor({timeout:10000});
-        assert.equal(await page.locator('#grid article').count(),30);
+        await page.getByText('33 of 33 recordings shown').waitFor({timeout:10000});
+        assert.equal(await page.locator('#grid article').count(),33);
         assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,
           'Third-party embeds must not preload before listener chooses an episode');
         await page.locator('#search').fill('Augustine');
@@ -93,6 +93,32 @@ try {
         assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
         const podWidth=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
         assert.ok(podWidth.scroll<=podWidth.width+1,'Public podcast page has mobile overflow: '+JSON.stringify(podWidth));
+      }
+      if (EXPECTED) {
+        // Exact deployed SHA must expose Cornerstone Teachings, the six original
+        // study paths and a usable interactive, non-graded reflection on mobile.
+        const source=await page.goto(BASE+'cornerstone-teachings.html',{waitUntil:'domcontentloaded',timeout:30000});
+        assert.equal(source?.status(),200,'Cornerstone Teachings must be published');
+        const marker=await page.locator('meta[name="faithhub-deploy-sha"]').getAttribute('content');
+        assert.equal(marker,EXPECTED,'Cornerstone page must match exact deployed SHA');
+        await page.getByRole('heading',{name:'Cornerstone Teachings'}).waitFor();
+        assert.equal(await page.locator('#resources .resource').count(),11);
+        assert.equal(await page.locator('#pathways button').count(),6);
+        await page.getByRole('button',{name:'Romans 12',exact:true}).click();
+        assert.ok((await page.locator('#verseLink').getAttribute('href')).includes('ROM.12.9-13'));
+        await page.locator('input[name="cornerstone-answer"][value="1"]').check();
+        await page.locator('#check').click();
+        assert.match(await page.locator('#feedback').textContent(),/That's right/);
+        await page.locator('#journal').fill('Synthetic deployment evidence only');
+        await page.locator('#save').click();
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.getByRole('button',{name:'Romans 12',exact:true}).click();
+        assert.equal(await page.locator('#journal').inputValue(),'Synthetic deployment evidence only');
+        page.once('dialog',dialog=>dialog.accept());
+        await page.locator('#clear').click();
+        assert.equal(await page.locator('#journal').inputValue(),'');
+        const size=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
+        assert.ok(size.scroll<=size.width+1,'Cornerstone page must fit mobile viewport');
       }
       if (EXPECTED) {
         // Verify the newly deployed private prayer-card journey with synthetic data
@@ -158,7 +184,7 @@ try {
         expected_deploy_sha:EXPECTED||'not asserted (PR preview)',
         source_sha_observed:remoteMarker||'unmarked legacy deployment',
         checks:['home navigation','Psalm 13 interaction','authorised link','unsaved draft',
-                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','synthetic intercession card save/reload/delete when SHA bound','synthetic cross-page backup restore when SHA bound','no JS errors'],
+                'save/reload/delete','no mobile overflow','desktop links','deployed saints guide when SHA bound','synthetic intercession card save/reload/delete when SHA bound','Cornerstone course navigation, quiz, local reflection and deployed SHA','synthetic cross-page backup restore when SHA bound','no JS errors'],
         caveat:'One scoped browser journey, not whole-product usability or human evaluation',
       }));
       lastError=null;
