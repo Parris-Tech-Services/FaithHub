@@ -59,7 +59,7 @@ test('the player is on demand, searchable and has external fallbacks',()=>{
   assert.match(page,/id="playerHost"/);
   assert.match(page,/function matches\(e\)/);
   assert.match(page,/function render\(\)/);
-  assert.match(page,/load:false/);
+  assert.match(page,/load=false/);
   assert.match(page,/showSelected\(current\);/);
   assert.match(page,/playerHost\.replaceChildren\(\)/);
   assert.match(page,/data-select/);
