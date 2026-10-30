@@ -6,6 +6,15 @@ Canonical repository: https://github.com/Parris-Tech-Services/FaithHub
 
 A gentle, non-performance-based spiritual formation app for daily Scripture, prayer rhythms, fruits of the Spirit reflection, repentance/gratitude, family prayer prompts, community rhythms, and Sabbath/rest tracking.
 
+## Cornerstone Teachings — linked learning & recordings (31 October 2026)
+
+- **[Open Cornerstone Teachings](cornerstone-teachings.html):** new public-facing learning section linked from the FaithHub homepage, React navigation and podcast library. Six original, accessible study pathways each offer a Bible reading, prayer, practical action, optional private reflection and a non-graded multiple-choice understanding check.
+- **Real existing systems, no duplicate LMS:** Cornerstone Community's official login-protected course portal at https://courses.cornerstonecommunity.org.au/ has *Jesus in the Gospel of Mark* and *The Quest*. FaithHub links to each original course, never copies its restricted lessons or impersonates enrolment/progress syncing.
+- **Podcast/audio catalogue connections:** publisher's historic 96-episode *Cornerstone Community Podcast*; 18-episode *Cornerstone Community Bendigo* collection published by Joshua Parris; and separate *Paul Roe — Character of Jesus* episode. Site also links the March 2026 Muster recording URLs circulated by Cornerstone. Listening occurs at the original publisher, no media rehosting or autoplay.
+- **Private material/permissions:** Drive handbooks, internal teaching outlines, coursework, emails and people information are NOT published to a public GitHub Pages repository. Existing authenticated LMS work remains with the official source. No LTI/SSO/API or cross-device progress link is claimed. JoshHub's TASK-083 integration remains separately unverified.
+- **Study privacy:** reflection text remains in this browser (localStorage, not encrypted), stored only on explicit Save. Export JSON and confirmed delete are available. No accounts, analytics, cloud backend, external submissions or spiritual performance scoring.
+- **Tests:** `node --test scripts/cornerstone-teachings.test.mjs` and existing FaithHub test suite; direct browser coverage should verify lesson switching, answer explanations, save/export/delete and mobile layout.
+
 ## Run locally
 
 ```bash
