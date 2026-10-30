@@ -42,6 +42,7 @@ jobs:
           node scripts/ux-mobile-browser.cjs
           node scripts/podcast-unified-browser.mjs
           node scripts/intercession-browser.mjs
+          node scripts/cornerstone-browser.mjs
       - name: Store the 390px mobile verification screenshot
         if: always()
         uses: actions/upload-artifact@v4
