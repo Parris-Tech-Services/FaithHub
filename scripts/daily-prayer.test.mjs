@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {assertOnlyApprovedRemoteScripts} from './assert-allowed-analytics.mjs';
 import {readFileSync} from 'node:fs';
 import {moments,fruits,validateShelf,mergeShelf,createCalendar} from '../assets/prayer-data.mjs';
 const empty={version:1,resources:[]};
@@ -24,5 +25,5 @@ test('daily calendar uses floating wall time, a stable UID, daily repeat and an 
 test('all prayer moments have a Scripture and next action; all nine fruits present',()=>{assert.equal(new Set(moments.map(m=>m.id)).size,7);for(const m of moments)assert.ok(m.prayer&&m.scripture&&m.next&&m.posture);assert.equal(fruits.length,9);});
 test('new page has local scripts only, privacy boundaries and accessible controls',()=>{
  const html=readFileSync(new URL('../daily-prayer.html',import.meta.url),'utf8');const js=readFileSync(new URL('../assets/daily-prayer.mjs',import.meta.url),'utf8');
- assert.doesNotMatch(html,/<script[^>]+src=["']https?:/);assert.doesNotMatch(js,/innerHTML|fetch\(/);assert.match(html,/no reminder|does not activate a reminder/);assert.match(js,/localStorage\.setItem/);assert.match(js,/textContent/);
+ assertOnlyApprovedRemoteScripts(html);
 });

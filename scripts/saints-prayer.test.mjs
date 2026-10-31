@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {ANALYTICS_TAG, assertOnlyApprovedRemoteScripts} from './assert-allowed-analytics.mjs';
 import { readFileSync } from 'node:fs';
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 test('saints prayer guide includes accessible direct prayer and grounded primary-source readings',()=>{
@@ -13,7 +14,8 @@ test('saints prayer guide includes accessible direct prayer and grounded primary
  for(const name of ['Augustine','Teresa','Ignatius','Brother Lawrence','Benedict','Thérèse']) assert.ok(html.includes(name),name);
  for(const source of ['newadvent.org/fathers/1102130.htm','ccel.org/ccel/teresa/way/way.i.xxxii.html','orderofthecommonlife.org/spiritual-exercises-full-text','ccel.org/ccel/lawrence/practice.all.html','gutenberg.org/files/50040/50040-h/50040-h.htm','ccel.org/ccel/therese/autobio.all.html']) assert.ok(html.includes(source),source);
  assert.doesNotMatch(html,/<iframe\b/i);
- assert.doesNotMatch(html,/<script\b/i);
+ assertOnlyApprovedRemoteScripts(html);
+ assert.deepEqual([...html.matchAll(/<script\b[^>]*>/gi)].map(match=>match[0]),[ANALYTICS_TAG],'no other script tags on the historical prayer guide');
 });
 test('verified podcast destinations are present and linked via ordinary anchors',()=>{
  const html=read('../saints-prayer.html');

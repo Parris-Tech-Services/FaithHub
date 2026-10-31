@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {assertOnlyApprovedRemoteScripts} from './assert-allowed-analytics.mjs';
 import { readFileSync } from 'node:fs';
 import {
   psalmPaths, christianVoices, getPsalmPath, parsePrivateNotes,
@@ -29,7 +30,8 @@ test('all linked creators are genuine HTTPS sources, no uploaded audio or copied
     assert.ok(c.cta && c.detail && c.category);
   }
   const html=read('psalms.html');
-  assert.doesNotMatch(html, /<(?:iframe|audio|video)\b|<script[^>]*src=["']https?:/i);
+  assert.doesNotMatch(html, /<(?:iframe|audio|video)\b/i);
+  assertOnlyApprovedRemoteScripts(html);
   assert.match(html, /Scripture first/);
 });
 
