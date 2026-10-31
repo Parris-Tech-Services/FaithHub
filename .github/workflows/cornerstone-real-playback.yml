@@ -1,0 +1,30 @@
+name: Cornerstone real audio-playback verification
+on:
+  push:
+    branches:
+      - fix/cornerstone-verified-real-playback-20261031
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-playback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build real public podcast catalogue, do not proxy any media
+        run: python3 scripts/build-cornerstone-catalogue.py --output cornerstone-episodes.json --require-at-least 115
+      - name: Install ephemeral Chromium and Playwright
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Require audio actually progresses for the affected user recording
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/faithhub-audio-server.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          node scripts/cornerstone-real-playback-browser.mjs
+          CORNERSTONE_TEST_TITLE='Muster 2018 - Andrew Vincent - First Things First' node scripts/cornerstone-real-playback-browser.mjs

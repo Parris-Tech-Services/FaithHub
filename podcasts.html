@@ -46,6 +46,9 @@
     .private-import label{font-weight:700}
     .private-import p{margin-bottom:0}
     .player-placeholder{padding:17px;border:1px solid #777;border-radius:12px;color:var(--muted)}
+    .mixcloud-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+    .mixcloud-actions button{min-height:48px}
+    #faithhub-analytics-slot>button{position:static!important;inset:auto!important;min-height:46px!important;width:auto!important;height:auto!important;padding:9px 12px!important;background:var(--card)!important;color:var(--fg)!important;border:2px solid var(--border)!important;border-radius:12px!important;box-shadow:none!important;opacity:1!important;z-index:auto!important;cursor:pointer!important}
     .mode{font-size:.8rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:0 0 6px}
     .card .note{margin:0 0 14px}
     .card.playing{outline:3px solid #8bb9a0}
@@ -66,7 +69,7 @@
     <p><a href="daily-prayer.html#listen">Listen, then pray · Return to Jesus</a></p>
     <p><a href="saints-prayer.html">How to pray to Jesus · Listen to historic Christian teachers</a></p>
     <p><a href="cornerstone-teachings.html">Cornerstone Community recordings, original historical podcast catalogues and interactive courses</a></p>
-    <div class="top"><a class="btn" href="./">← Back to FaithHub</a></div>
+    <div class="top"><a class="btn" href="./">← Back to FaithHub</a><div id="faithhub-analytics-slot" aria-label="Analytics preferences"></div></div>
   </header>
 
   <section class="player" aria-label="Saints on prayer">
@@ -105,7 +108,7 @@
 
   <section id="catalogue" aria-label="Search the podcast catalogue">
     <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Paul Roe, Laurie, Romans, Joy, Teresa or Sabbath" /></div>
-    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — playable here</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="cornerstone-private">Cornerstone — my private recordings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — in-page players (availability varies)</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="cornerstone-private">Cornerstone — my private recordings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
     <p id="resultCount" role="status"></p><p id="cornerstoneFeedStatus" class="status" role="status" aria-live="polite">Loading Cornerstone episodes from the published podcast feeds…</p>
   </section>
   <section id="grid" class="grid"></section>
@@ -172,6 +175,9 @@ const playerHost=document.getElementById('playerHost');
 const playbackStatus=document.getElementById('playbackStatus');
 const publisherLink=document.getElementById('publisherLink');
 const randomBtn=document.getElementById('randomBtn');
+let mixcloudControl=null;
+let mixcloudApiPromise=null;
+let mixcloudPlayerVerified=false;
 const cornerstoneFeedStatus=document.getElementById('cornerstoneFeedStatus');
 const privateImportStatus=document.getElementById('privateImportStatus');
 const requestedEpisode=new URLSearchParams(window.location.search).get('episode');
@@ -202,6 +208,8 @@ function showSelected(id,{scroll=false,load=false}={}){
   publisherLink.href=e.url;
   publisherLink.textContent='Open at '+categoryLabel(e);
   playerHost.replaceChildren();
+  mixcloudControl=null;
+  mixcloudPlayerVerified=false;
   if(!load){
     const p=document.createElement('p');
     p.className='player-placeholder';
@@ -248,10 +256,76 @@ function showSelected(id,{scroll=false,load=false}={}){
     if(e.mode==='apple-show')frame.className='apple-show';
     if(e.mode==='mixcloud')frame.style.height='180px';
     playerHost.append(frame);
-    playbackStatus.textContent=categoryLabel(e)+' official embedded player loaded. Press play inside it. Playback remains with the publisher and is subject to their availability.';
+    if(e.mode==='mixcloud'){
+      playbackStatus.textContent='Mixcloud widget loaded. Audio has NOT been confirmed. Tap Play in FaithHub or the player controls.';
+      startMixcloudTracking(frame,e);
+    }else{
+      playbackStatus.textContent=categoryLabel(e)+' embedded player loaded. Press play inside it. Audio has not yet been verified.';
+    }
   }
   render();
   if(scroll)document.querySelector('.player[aria-label="FaithHub podcast player"]').scrollIntoView({behavior:'auto',block:'start'});
+}
+// The widget existing in the DOM does NOT prove an audio stream is working.
+// Official Mixcloud API reports actual progress and errors; no stream extraction.
+function loadMixcloudApi(){
+  if(window.Mixcloud?.PlayerWidget)return Promise.resolve(window.Mixcloud);
+  if(mixcloudApiPromise)return mixcloudApiPromise;
+  mixcloudApiPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://widget.mixcloud.com/media/js/widgetApi.js';
+    script.async=true;
+    script.onload=()=>window.Mixcloud?.PlayerWidget?resolve(window.Mixcloud):reject(new Error('Mixcloud API unavailable'));
+    script.onerror=()=>reject(new Error('Mixcloud controls could not load'));
+    document.head.append(script);
+  }).catch(error=>{mixcloudApiPromise=null;throw error});
+  return mixcloudApiPromise;
+}
+async function startMixcloudTracking(frame,recording){
+  const id=recording.id;
+  const same=()=>current===id&&playerHost.contains(frame);
+  try{
+    const api=await loadMixcloudApi();
+    if(!same())return;
+    const widget=api.PlayerWidget(frame);
+    await Promise.race([widget.ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Widget not responding')),16000))]);
+    if(!same())return;
+    mixcloudControl=widget;
+    const actions=document.createElement('div');
+    actions.className='mixcloud-actions';
+    const playButton=document.createElement('button');
+    playButton.type='button';playButton.className='play-btn primary';
+    playButton.textContent='Play in FaithHub';
+    playButton.addEventListener('click',()=>{
+      if(!same())return;
+      mixcloudPlayerVerified=false;
+      playbackStatus.textContent='Play requested. Checking whether Mixcloud audio actually progresses…';
+      widget.play().catch(()=>{if(same())playbackStatus.textContent='Mixcloud could not start audio. Try the source link or an original MP3 from your private archive.'});
+      setTimeout(async()=>{
+        if(!same()||mixcloudPlayerVerified)return;
+        try{
+          const seconds=await widget.getPosition();
+          if(!same()||mixcloudPlayerVerified)return;
+          if(typeof seconds==='number'&&seconds>=2){mixcloudPlayerVerified=true;playbackStatus.textContent='Playing in FaithHub: '+Math.floor(seconds)+' seconds into this recording.';}
+          else playbackStatus.textContent='Playback not confirmed: Mixcloud has not advanced from the start. This recording may be unavailable; try your original MP3 through the private archive player below.';
+        }catch{if(same())playbackStatus.textContent='Unable to verify Mixcloud playback. The original archive MP3 is the safer alternative where available.';}
+      },11000);
+    });
+    actions.append(playButton);
+    frame.insertAdjacentElement('afterend',actions);
+    widget.events.progress.on((position)=>{
+      if(!same())return;
+      if(typeof position==='number'&&position>=2){
+        mixcloudPlayerVerified=true;
+        playbackStatus.textContent='Playing in FaithHub: '+Math.floor(position)+' seconds into this recording.';
+      }
+    });
+    widget.events.error.on(()=>{if(same())playbackStatus.textContent='Mixcloud reported a playback error. The embedded player is not a working audio source for this recording.'});
+    widget.events.play.on(()=>{if(same()&&!mixcloudPlayerVerified)playbackStatus.textContent='Mixcloud says Play was pressed; checking audio progress before confirming it works…'});
+    widget.events.pause.on(()=>{if(same()&&!mixcloudPlayerVerified)playbackStatus.textContent='Mixcloud stopped before confirming any audio progress. Try another recording or your archived MP3.'});
+  }catch{
+    if(same())playbackStatus.textContent='Mixcloud player shown, but playback cannot be verified here. Try the controls in the widget; if the clock stays at 00:00, use the private MP3 player below.';
+  }
 }
 function pickDifferent(){
   if(catalogue.length<2)return current;
@@ -349,6 +423,22 @@ async function loadCornerstoneEpisodes(){
   }
 }
 loadCornerstoneEpisodes();
+
+// Keep analytics preferences accessible but not overlaid on podcast controls.
+(() => {
+  const slot=document.getElementById('faithhub-analytics-slot');
+  if(!slot||!window.MutationObserver)return;
+  const dock=()=>{
+    for(const button of document.body.querySelectorAll('button')){
+      if(button.textContent?.trim()==='Analytics settings'&&button.parentElement!==slot)
+        slot.append(button);
+    }
+  };
+  const observer=new MutationObserver(dock);
+  observer.observe(document.body,{childList:true});
+  dock();
+  window.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
+})();
 
 // Private recordings are NEVER included in the static public podcast feed.
 // The catalogue is user-supplied, and only its metadata is stored locally.
