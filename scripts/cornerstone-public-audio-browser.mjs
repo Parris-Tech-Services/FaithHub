@@ -18,7 +18,7 @@ try{
  await page.locator('#grid article').getByRole('button',{name:'Listen here'}).click();
  const audio=page.locator('#playerHost audio');
  await audio.waitFor({timeout:10000});
- assert.match(await audio.getAttribute('src'),/faithhub-cornerstone-audio\.parris-neathaustralia\.workers\.dev\/download\?/);
+ assert.match(await audio.getAttribute('src'),/faithhub-cornerstone-audio[.]parris-neathaustralia[.]workers[.]dev[/]audio[/]/);
  assert.equal(await page.locator('#playerHost iframe').count(),0,'All public audio should be native HTML5, not iframe previews');
  // Test real MP3 bytes decoding, not just loading a player. Chromium is allowed autoplay
  // in ephemeral CI; actual FaithHub listeners click native audio controls.
