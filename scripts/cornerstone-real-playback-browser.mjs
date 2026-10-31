@@ -32,7 +32,7 @@ try {
   const src=await iframe.getAttribute('src');
   assert.ok(src.startsWith('https://www.mixcloud.com/widget/iframe/'),'Only official widget allowed');
   console.log('SOURCE_WIDGET',src);
-  const frame=await iframe.contentFrame();
+  const frame=await (await iframe.elementHandle()).contentFrame();
   try{await frame.waitForLoadState('domcontentloaded',{timeout:18000})}catch{}
   await page.waitForTimeout(3500);
   let buttons=[];
