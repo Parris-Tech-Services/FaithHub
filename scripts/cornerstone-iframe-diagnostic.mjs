@@ -7,7 +7,7 @@ try{
   const errors=[];
   page.on('console',m=>{if(m.type()==='error'&&/Mixed Content|encrypted-media|media/i.test(m.text()))errors.push(m.text().slice(0,230));});
   await page.goto(path+'podcasts.html?topic=cornerstone',{waitUntil:'domcontentloaded'});
-  await page.getByText(/117 Cornerstone recordings/).waitFor({timeout:25000});
+  await page.getByText(/117 public catalogue entries/).waitFor({timeout:25000});
   await page.locator('#search').fill('The Heart of the Father');
   await page.locator('#grid [data-select]').first().click();
   await page.locator('#playerHost iframe').waitFor();
