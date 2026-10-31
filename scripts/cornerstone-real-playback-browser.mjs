@@ -22,8 +22,10 @@ try {
   const resp=await page.goto(base+'/podcasts.html?topic=cornerstone',{waitUntil:'domcontentloaded',timeout:35000});
   assert.equal(resp.status(),200);
   await page.getByText(/117 Cornerstone recordings:/).waitFor({timeout:60000});
-  await page.locator('#search').fill('Heart of the Father');
-  const card=page.locator('#grid article').filter({hasText:'The Heart of the Father – Part 1'}).first();
+  const testTitle=process.env.CORNERSTONE_TEST_TITLE||'The Heart of the Father – Part 1';
+  await page.locator('#search').fill(testTitle);
+  const card=page.locator('#grid article').filter({hasText:testTitle}).first();
+  console.log('TEST_TRACK',testTitle);
   await card.waitFor({timeout:15000});
   const button=card.getByRole('button',{name:'Listen here'});
   await button.click();
