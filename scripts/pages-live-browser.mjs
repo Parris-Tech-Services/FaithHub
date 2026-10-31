@@ -86,7 +86,7 @@ try {
         const liveAudio=feed.episodes.filter(e=>e.mode==='audio');
         assert.ok(liveMixcloud.length>=90,'Publisher-hosted Mixcloud source recovery unexpectedly missing');
         assert.ok(liveUnplayable.length<=6,'Too many historical podcast sources remain unavailable');
-        assert.ok(liveAudio.length>=19,'Working original audio feeds missing');
+        assert.ok(liveAudio.length>=19,'Original direct-audio sources missing (browser playback may still require verification)');
         const expectedItems=30+feed.episodes.length;
         await page.waitForFunction(n=>document.querySelectorAll('#grid article').length===n,expectedItems,{timeout:16000});
         assert.equal(await page.locator('#grid article').count(),expectedItems);
@@ -105,7 +105,7 @@ try {
         await page.locator('#filter').selectOption('cornerstone');
         assert.equal(await page.locator('#grid article').count(),feed.episodes.length,'All imported Cornerstone recordings must appear');
         const status=await page.locator('#cornerstoneFeedStatus').textContent();
-        assert.match(status,/Cornerstone recordings:/);
+        assert.match(status,/public catalogue entries:/);
         assert.equal(await page.locator('#grid [data-select]').count(),liveMixcloud.length+liveAudio.length);
         await page.locator('#search').fill('Character of Jesus - 25th June 2022');
         assert.equal(await page.locator('#grid article').count(),1);
@@ -113,10 +113,10 @@ try {
         assert.match(await page.locator('#playerHost audio').getAttribute('src'),/^https:\/\/anchor\.fm\//);
         await page.locator('#search').fill('Muster 2018 - Andrew Vincent - First Things First');
         assert.equal(await page.locator('#grid article').count(),1);
-        assert.equal(await page.locator('#grid [data-select]').count(),1,'Recovered 2018 Muster talk must now offer in-page playback');
+        assert.equal(await page.locator('#grid [data-select]').count(),1,'2018 Muster episode must still offer an official in-page embed, not imply sound works');
         await page.locator('#grid [data-select]').click();
         const frameUrl=await page.locator('#playerHost iframe').getAttribute('src');
-        assert.match(frameUrl,/^https:\/\/www\.mixcloud\.com\/widget\/iframe\/\?/,'Official Mixcloud player must load in FaithHub');
+        assert.match(frameUrl,/^https:\/\/www\.mixcloud\.com\/widget\/iframe\/\?/,'Mixcloud frame source must exist (separate sound playback test required)');
         const podWidth=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
         assert.ok(podWidth.scroll<=podWidth.width+1,'Public podcast page has mobile overflow: '+JSON.stringify(podWidth));
       }
