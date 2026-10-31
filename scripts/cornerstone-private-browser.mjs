@@ -16,8 +16,12 @@ try{
          embed:'https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=%2Fcornerstonecommunitypodcast%2Fmuster-2018-andrew-vincent-first-things-first%2F'}
       ]})
     }));
+    const errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
     await page.goto(base+'/podcasts.html',{waitUntil:'domcontentloaded'});
-    await page.getByText('31 of 31 recordings shown').waitFor({timeout:16000});
+    await page.waitForTimeout(800);
+    console.log('PRIVATE_BROWSER_DIAGNOSTIC',width,JSON.stringify({result:await page.locator('#resultCount').textContent(),status:await page.locator('#cornerstoneFeedStatus').textContent(),errors}));
+    await page.getByText('31 of 31 recordings shown').waitFor({timeout:8000});
     await page.locator('#filter').selectOption('cornerstone');
     assert.equal(await page.locator('#grid [data-select]').count(),1);
     await page.locator('#grid [data-select]').click();
