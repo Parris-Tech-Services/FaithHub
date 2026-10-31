@@ -251,7 +251,7 @@ function showSelected(id,{scroll=false,load=false}={}){
       });
     }
     playerHost.append(audio);
-    playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':e.id.startsWith('public:drive:')?'Public MP3 ready. Press Play using the FaithHub audio controls; successful playback will be confirmed after two seconds.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
+    playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':e.id.startsWith('public:drive:')?'Public Cornerstone MP3 ready. Press Play; successful audio playback is confirmed after two seconds.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
   }else{
     const frame=document.createElement('iframe');
     frame.title=categoryLabel(e)+' player: '+e.title;
@@ -448,8 +448,8 @@ async function loadPublicCornerstoneAudio(){
         title:x.title.replace(/\.(mp3|m4a|aac|ogg|flac)$/i,'').replace(/_/g,' ').slice(0,240),
         show:'Cornerstone Community · '+folder,
         tags:['cornerstone','public','audio','archive',...folder.toLowerCase().split(/[\\/]/).filter(Boolean).slice(-3)],
-        duration:'',provider:'audio',mode:'audio',embed:'https://drive.usercontent.google.com/download?id='+encodeURIComponent(x.id)+'&export=download&confirm=t',url:'https://drive.google.com/file/d/'+encodeURIComponent(x.id)+'/view',
-        note:'Publicly shared recovered recording. Play using FaithHub’s audio controls; the source remains available on Google Drive.'
+        duration:'',provider:'audio',mode:'audio',embed:'https://faithhub-cornerstone-audio.parris-neathaustralia.workers.dev/audio/'+encodeURIComponent(x.id),url:'https://drive.google.com/file/d/'+encodeURIComponent(x.id)+'/view',
+        note:'Publicly shared recovered recording. Stream through FaithHub’s Cloudflare audio gateway; the original file is kept on Google Drive.'
       });
     }
     for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].id.startsWith('public:drive:'))catalogue.splice(i,1);
