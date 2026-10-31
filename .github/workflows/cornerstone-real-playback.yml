@@ -27,3 +27,4 @@ jobs:
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true' EXIT
           node scripts/cornerstone-real-playback-browser.mjs
+          CORNERSTONE_TEST_TITLE='Muster 2018 - Andrew Vincent - First Things First' node scripts/cornerstone-real-playback-browser.mjs
