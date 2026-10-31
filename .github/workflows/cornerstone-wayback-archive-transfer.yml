@@ -10,68 +10,108 @@ permissions:
 jobs:
   archive:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    env:
+      SHARD: ${{ matrix.shard }}
     steps:
-      - name: Recover sample archived MP3s and integrity report
+      - name: Recover this shard of archived audio with integrity manifest
         shell: bash
         run: |
           python - <<'PY'
-          import requests, pathlib, json, time, urllib.parse, hashlib, re
-          out=pathlib.Path("archive");out.mkdir(exist_ok=True)
-          cdx="https://web.archive.org/cdx/search/cdx"
-          p={"url":"www.cornerstone.edu.au/*","output":"json","filter":["mimetype:audio/mpeg","statuscode:200"],"limit":"300"}
-          s=requests.Session();s.headers.update({"User-Agent":"CornerstonePreservation/1.0 (noncommercial public audio recovery)"})
-          report={"index":cdx,"download_attempts":[]}
+          import collections, hashlib, json, os, pathlib, time
+          from urllib.parse import urlparse
+          import requests
+          
+          SHARD = int(os.environ["SHARD"])
+          SHARDS = 24
+          ROOT = pathlib.Path("archive")
+          ROOT.mkdir(exist_ok=True)
+          INDEX = "https://web.archive.org/cdx/search/cdx"
+          PARAMS = [("url", "www.cornerstone.edu.au/*"), ("output", "json"),
+                    ("filter", "mimetype:audio/mpeg"), ("filter", "statuscode:200"),
+                    ("limit", "300")]
+          session = requests.Session()
+          session.headers.update({"User-Agent": "Cornerstone audio preservation personal archive"})
+          report = {"shard": SHARD, "shards": SHARDS, "source": INDEX,
+                    "downloads": [], "capture_count": None, "unique_count": None}
           try:
-            response=s.get(cdx,params=p,timeout=105)
-            print("CDX response",response.status_code,len(response.content),response.url,flush=True)
-            response.raise_for_status()
-            data=response.json();fields=data[0]
-            rows=[dict(zip(fields,r)) for r in data[1:]]
-            report["capture_count"]=len(rows)
-            seen=set();files=[]
-            for row in rows:
-              key=row.get("urlkey") or row["original"]
-              if key in seen:continue
-              seen.add(key);files.append(row)
-            report["unique_urlkeys"]=len(files)
-            files.sort(key=lambda r: ('\\_' in r["original"],r["original"]))
-            for row in files[:4]:
-              orig=row["original"]
-              safe=orig.replace('\\_','_')
-              basename=pathlib.Path(urllib.parse.urlparse(safe).path).name
-              fn=pathlib.Path("archive")/(basename or row["digest"]+".mp3")
-              u="https://web.archive.org/web/"+row["timestamp"]+"id_/"+safe
-              entry={"original":orig,"timestamp":row["timestamp"],"replay":u,"name":basename}
-              try:
-                r=s.get(u,timeout=120,stream=True)
-                entry["status"]=r.status_code;entry["content_type"]=r.headers.get("Content-Type")
-                r.raise_for_status()
-                h=hashlib.sha256();size=0
-                with fn.open("wb") as fh:
-                  for part in r.iter_content(1024*512):
-                    if part:
-                      fh.write(part);h.update(part);size+=len(part)
-                      if size>100_000_000:raise ValueError("sample over 100 MB")
-                head=fn.open("rb").read(10)
-                entry.update(size=size,sha256=h.hexdigest(),first_bytes=head.hex(),valid_mp3=(head.startswith(b"ID3") or bool(head and head[0]==255 and head[1]&224==224)))
-                if not entry["valid_mp3"] or size<8000:
-                  fn.unlink(missing_ok=True)
-                print("Audio",basename,entry["status"],size,entry["valid_mp3"],flush=True)
-              except Exception as e:
-                entry["error"]=str(e);fn.unlink(missing_ok=True)
-                print("Audio failed",basename,str(e),flush=True)
-              report["download_attempts"].append(entry)
-              time.sleep(1)
-          except Exception as e:
-            report["error"]=str(e);print("CDX error:",e,flush=True)
-          (out/"manifest.json").write_text(json.dumps(report,indent=2))
+              response = session.get(INDEX, params=PARAMS, timeout=110)
+              response.raise_for_status()
+              records = response.json()
+              columns = records[0]
+              rows = [dict(zip(columns, row)) for row in records[1:]]
+              grouped = collections.defaultdict(list)
+              for row in rows:
+                  grouped[row["urlkey"].replace("\\_", "_")].append(row)
+              keys = sorted(grouped)
+              report.update(capture_count=len(rows), unique_count=len(keys))
+              selected = [(i, key, grouped[key]) for i, key in enumerate(keys)
+                          if i % SHARDS == SHARD]
+              report["selected_count"] = len(selected)
+              print("CDX", len(rows), "captures", len(keys), "unique;", "shard", SHARD, len(selected), flush=True)
+              for i, key, candidates in selected:
+                  original = candidates[-1]["original"].replace("\\_", "_")
+                  relative = pathlib.PurePosixPath(urlparse(original).path.lstrip("/"))
+                  if not relative.parts or any(x in ("..", ".") for x in relative.parts):
+                      report["downloads"].append({"key": key, "error": "unsafe URL path", "ok": False})
+                      continue
+                  target = ROOT.joinpath(*relative.parts)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  detail = {"key": key, "path": str(relative), "original": original,
+                            "captures": len(candidates), "ok": False, "attempts": []}
+                  for row in sorted(candidates, key=lambda x: x["timestamp"], reverse=True):
+                      replay = "https://web.archive.org/web/" + row["timestamp"] + "id_/" + row["original"].replace("\\_", "_")
+                      attempt = {"capture": row["timestamp"], "replay": replay}
+                      try:
+                          with session.get(replay, stream=True, timeout=(30, 160)) as resp:
+                              attempt.update(http_status=resp.status_code, content_type=resp.headers.get("Content-Type"))
+                              resp.raise_for_status()
+                              digest = hashlib.sha256()
+                              size = 0
+                              with target.open("wb") as fp:
+                                  for block in resp.iter_content(262144):
+                                      if block:
+                                          fp.write(block)
+                                          digest.update(block)
+                                          size += len(block)
+                                          if size > 130000000:
+                                              raise ValueError("file exceeds 130MB safety limit")
+                          with target.open("rb") as fp:
+                              head = fp.read(10)
+                          valid = size >= 10000 and (head.startswith(b"ID3") or
+                              (len(head) >= 2 and head[0] == 255 and head[1] & 224 == 224))
+                          attempt.update(bytes=size, mp3_header=valid, sha256=digest.hexdigest())
+                          if not valid:
+                              raise ValueError("not valid MP3 header/too small")
+                          detail.update(ok=True, bytes=size, sha256=digest.hexdigest(), capture=row["timestamp"])
+                          detail["attempts"].append(attempt)
+                          print("OK", i, relative, size, flush=True)
+                          break
+                      except Exception as error:
+                          attempt["error"] = repr(error)
+                          target.unlink(missing_ok=True)
+                          detail["attempts"].append(attempt)
+                          print("FAILED", i, relative, row["timestamp"], repr(error), flush=True)
+                          time.sleep(0.4)
+                  report["downloads"].append(detail)
+                  time.sleep(0.2)
+          except Exception as error:
+              report["fatal_error"] = repr(error)
+              print("FATAL", repr(error), flush=True)
+          (ROOT / ("manifest-shard-%02d.json" % SHARD)).write_text(json.dumps(report, indent=2))
+          print("SUMMARY", SHARD, sum(1 for e in report["downloads"] if e.get("ok")), "/", report.get("selected_count"), flush=True)
           PY
-      - name: Upload test artifact
+      - name: Upload verified MP3s and report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cornerstone-wayback-audio-pilot
+          name: cornerstone-wayback-shard-${{ matrix.shard }}
           path: archive/
           compression-level: 0
+          retention-days: 1
           if-no-files-found: error
