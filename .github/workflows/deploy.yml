@@ -79,6 +79,21 @@ jobs:
           grep -q 'href="cornerstone-teachings.html"' _site/index.html
           grep -q 'Cornerstone Teachings' _site/cornerstone-teachings.html
 
+      - name: Resolve all publicly available Cornerstone podcast episodes
+        shell: bash
+        run: |
+          python3 scripts/build-cornerstone-catalogue.py --output _site/cornerstone-episodes.json --require-at-least 100
+          python3 - <<'PY'
+          import json
+          data=json.load(open('_site/cornerstone-episodes.json'))
+          counts={str(x['showId']):x['playableEnclosuresFound'] for x in data['shows']}
+          assert counts['293630407'] >= 90, counts
+          assert counts['1631726711'] >= 15, counts
+          assert counts['1631658757'] >= 1, counts
+          assert all(e['embed'].startswith('https://') for e in data['episodes'])
+          print('Published individual streaming audio entries:',len(data['episodes']))
+          PY
+
       - name: Bind generated public pages to this exact Git source SHA
         shell: bash
         env:
