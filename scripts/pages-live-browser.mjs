@@ -104,6 +104,20 @@ try {
         await page.getByRole('heading',{name:'Cornerstone Teachings'}).waitFor();
         assert.equal(await page.locator('#resources .resource').count(),11);
         assert.equal(await page.locator('#pathways button').count(),6);
+        // Check the published theme control, exact source and saved preference.
+        await page.evaluate(() => localStorage.setItem('faithhub-theme', 'light'));
+        await page.reload({waitUntil:'domcontentloaded'});
+        assert.equal(await page.locator('#themeToggle').textContent(), 'Dark mode');
+        const bgLight = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+        await page.locator('#themeToggle').click();
+        assert.equal(await page.locator('#themeToggle').textContent(), 'Light mode');
+        assert.equal(await page.locator('#themeToggle').getAttribute('aria-pressed'), 'true');
+        assert.equal(await page.evaluate(() => localStorage.getItem('faithhub-theme')), 'dark');
+        assert.notEqual(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), bgLight);
+        await page.reload({waitUntil:'domcontentloaded'});
+        assert.equal(await page.locator('#themeToggle').textContent(), 'Light mode', 'Dark mode must persist across live reloads');
+        await page.locator('#themeToggle').click();
+        assert.equal(await page.evaluate(() => localStorage.getItem('faithhub-theme')), 'light');
         await page.getByRole('button',{name:'Romans 12',exact:true}).click();
         assert.ok((await page.locator('#verseLink').getAttribute('href')).includes('ROM.12.9-13'));
         await page.locator('input[name="cornerstone-answer"][value="1"]').check();
