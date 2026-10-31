@@ -1,0 +1,105 @@
+name: Cornerstone one-off audio recovery
+on:
+  push:
+    branches:
+      - cornerstone-audio-recovery-20261031
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install requests
+        run: pip install requests
+      - name: Recover and validate public Cornerstone audio (family interview excluded)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, os, pathlib, requests, time, subprocess
+          from urllib.parse import unquote, urlparse, quote
+          from urllib.parse import urljoin
+          out=pathlib.Path("recovered");out.mkdir(exist_ok=True)
+          session=requests.Session();session.headers.update({"User-Agent":"Cornerstone historical podcast recovery (public files; noncommercial archival check)"})
+          new_items=[["Laurie_Conversation_1_2020.m4a","https://anchor.fm/s/a25e66d4/podcast/play/64449857/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fproduction%2Fexports%2Fa25e66d4%2F64449857%2Fd29a80057a30011689dc39884c84ee8b.m4a"],["Laurie_Conversation_2_2020.mp3","https://anchor.fm/s/a25e66d4/podcast/play/71145898/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-4-27%2F331976566-44100-2-1684674d8d86c.mp3"],["Laurie_Conversation_3_2020.mp3","https://anchor.fm/s/a25e66d4/podcast/play/71145984/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-4-28%2F331977025-44100-2-cf46489a009dd.mp3"],["Cornerstone_Bendigo_Retreat_Sunday_2022-06-26.mp3","https://anchor.fm/s/a25e66d4/podcast/play/54021234/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fproduction%2F2022-5-26%2F273653652-44100-1-2817591b2e9db.mp3"],["Paul_Roe_Yackandandah_Character_of_Jesus_2022-06-25.m4a","https://anchor.fm/s/a25d5a78/podcast/play/53982257/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2022-5-25%2F91317e4f-7296-98b8-ca8f-77451fb27c0a.m4a"],["Cornerstone_Bendigo_Trailer_2022.m4a","https://anchor.fm/s/a25e66d4/podcast/play/54021422/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2022-5-26%2F273654342-44100-2-3f8cd1a73ea3f.m4a"]]
+          older=[["Muster_2018_-_Andrew_Vincent_-_First_Things_First.mp3","1715/5281/1631"],["Muster_2018_-_Mawson_Skidmore_-_First_things_First.mp3","8715/5281/1634"],["Muster_2018_Lucas_Frost_-_First_things_First_What_Gets_in_the_Way.mp3","3615/5281/1638"],["Lucas_Frost_-_2017_Southern_Regional_Muster.mp3","7715/0335/2324"],["Laurie_McIntosh_-_2017_Southern_Regional_Muster.mp3","5715/0335/2321"],["Andrew_Vincent__Joshua_Calder_-_2017_Southern_Regional_Muster.mp3","2215/0335/2318"]]
+          results=[]
+          def looks_audio(path):
+              if path.stat().st_size < 50000:return False
+              with open(path,"rb") as f:head=f.read(4096)
+              if head.startswith((b"ID3",b"fLaC",b"OggS")) or b"ftyp" in head[:24]:return True
+              if head[:60].lstrip().lower().startswith((b"<html",b"<!doctype",b"<?xml",b"{")):return False
+              return any(head[i]==255 and (head[i+1]&224)==224 for i in range(min(2048,len(head)-1)))
+          def get(url,path):
+              temp=path.with_suffix(path.suffix+".part")
+              try:
+                  with session.get(url,stream=True,timeout=(18,100),allow_redirects=True) as response:
+                      response.raise_for_status()
+                      with open(temp,"wb") as f:
+                          for piece in response.iter_content(chunk_size=1048576):
+                              if piece:f.write(piece)
+                  if not looks_audio(temp):raise ValueError("Response was not a valid audio file")
+                  try:
+                      p=subprocess.run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1",str(temp)],capture_output=True,text=True,timeout=25)
+                      if p.returncode!=0 or not p.stdout.strip():raise ValueError("ffprobe verification failed: "+p.stderr[:150])
+                  except FileNotFoundError:pass
+                  temp.replace(path)
+                  return path.stat().st_size
+              finally:
+                  if temp.exists():temp.unlink()
+          def run(name,urls,category):
+              path=out/name
+              if "Leo" in name or "Margaret" in name:raise ValueError("Excluded by user's express direction")
+              last="not found"
+              for u in urls:
+                  try:
+                      n=get(u,path)
+                      results.append({"name":name,"category":category,"status":"recovered","bytes":n,"url":u,"error":""})
+                      print("RECOVERED",name,n,flush=True)
+                      return
+                  except Exception as exc:
+                      last=(str(exc) or "fetch error")[:230]
+                      print("candidate failed",name, last,flush=True)
+                      time.sleep(1)
+              results.append({"name":name,"category":category,"status":"missing","bytes":0,"url":"","error":last})
+          def lookup(original):
+              # Wayback API and CDX require no credentials; all sources were originally public.
+              candidates=[]
+              for host in ["https://www.cornerstone.edu.au","http://cornerstone.edu.au","http://www.cornerstone.edu.au","https://cornerstone.edu.au"]:
+                  path=urlparse(original).path
+                  candidates.append(host+path)
+              for u in [original]+candidates[:2]:
+                  try:
+                      resp=session.get("https://archive.org/wayback/available",params={"url":u},timeout=(8,18))
+                      if resp.ok:
+                          v=resp.json().get("archived_snapshots",{}).get("closest",{})
+                          if v.get("available") and v.get("status")=="200":candidates.insert(0,v.get("url",""))
+                  except Exception:pass
+              return list(dict.fromkeys([u for u in candidates if u]))
+          for name,url in new_items:
+              decoded=unquote(url.split("/podcast/play/",1)[1].split("/",1)[1])
+              run(name,[url,decoded],"Bendigo podcast 2022-2023")
+          for name,fragment in older:
+              original="https://cms.cornerstone.edu.au/s3webstorage/"+fragment+"/"+name
+              run(name,lookup(original),"Original Cornerstone podcast 2017-2018")
+          with open("recovery_manifest.csv","w",newline="",encoding="utf-8") as file:
+              w=csv.DictWriter(file,fieldnames=["name","category","status","bytes","url","error"]);w.writeheader();w.writerows(results)
+          print("TOTAL",len(results),"RECOVERED",sum(x["status"]=="recovered" for x in results),flush=True)
+          
+          PY
+      - name: Upload recovered audio and manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cornerstone-public-recovery-${{ github.run_id }}
+          path: |
+            recovered/
+            recovery_manifest.csv
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 2
