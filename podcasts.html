@@ -95,15 +95,15 @@
   <section class="player" id="private-recordings" aria-label="Private Cornerstone recordings">
     <div class="player-kicker">Your private Cornerstone archive</div>
     <h2>Listen to recordings from your own Drive or device</h2>
-    <p>Import a private Cornerstone catalogue (JSON) to show your original Drive recordings here. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
+    <p>Import the Google Colab copy-results CSV (or a private JSON catalogue) to browse the recordings within FaithHub. This does not upload their contents or file IDs to the public site. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
     <div class="private-import">
-      <label for="driveCatalogueFile">Import your private Google Drive catalogue (JSON)</label>
-      <input id="driveCatalogueFile" type="file" accept=".json,application/json">
+      <label for="driveCatalogueFile">Import Cornerstone copy-results CSV or private Drive catalogue JSON</label>
+      <input id="driveCatalogueFile" type="file" accept=".csv,text/csv,.json,application/json">
       <label for="privateAudioFiles">Or select local MP3 / M4A audio files to listen here immediately</label>
       <input id="privateAudioFiles" type="file" accept=".mp3,.m4a,audio/mpeg,audio/mp4,audio/*" multiple>
       <div class="actions"><button class="btn" id="clearPrivateCatalogue" type="button">Remove my imported Drive catalogue from this browser</button><button class="btn" id="clearLocalAudio" type="button">Clear temporary local audio</button></div>
     </div>
-    <p id="privateImportStatus" class="status" role="status" aria-live="polite">Private recordings have not been imported on this browser.</p>
+    <p id="privateImportStatus" class="status" role="status" aria-live="polite">Choose the Josh_Calder_Cornerstone_Copy_Results CSV in your Google Drive download folder, or an existing private JSON catalogue. The imported file IDs stay in this browser only.</p>
   </section>
 
   <section id="catalogue" aria-label="Search the podcast catalogue">
@@ -451,7 +451,7 @@ function privateRow(x){
   const id=x.driveId.trim(),title=x.title.trim();
   if(!/^[A-Za-z0-9_-]{15,120}$/.test(id)||!title||title.length>240)return null;
   return {
-    id:'private:drive:'+id,title,driveId:id,show:'Your private Google Drive archive',
+    id:'private:drive:'+id,title,driveId:id,folder:typeof x.folder==='string'?x.folder.slice(0,170):'',show:(typeof x.folder==='string'&&x.folder.trim())?'Cornerstone · '+x.folder.slice(0,150):'Your private Google Drive archive',
     tags:['cornerstone','private','drive'],duration:'',provider:'drive',mode:'drive',
     url:'https://drive.google.com/file/d/'+encodeURIComponent(id)+'/view',
     note:'Private Google Drive preview. Playback depends on your existing Drive permissions and browser sign-in.'
@@ -482,9 +482,10 @@ document.getElementById('driveCatalogueFile').addEventListener('change',async ev
   if(!file)return;
   try{
     if(file.size>300000)throw new Error('Catalogue limit: 300 KB');
-    const imported=JSON.parse(await file.text());
+    const isCsv=/\.csv$/i.test(file.name);
+    const imported=isCsv?(await import('./assets/cornerstone-manifest-parser.mjs')).parseCornerstoneManifestCsv(await file.text()):JSON.parse(await file.text());
     const items=Array.isArray(imported)?imported:imported?.recordings;
-    if(!Array.isArray(items)||items.length>500)throw new Error('Expected JSON with a recordings array containing up to 500 entries.');
+    if(!Array.isArray(items)||items.length>500)throw new Error('Expected Cornerstone CSV or JSON with up to 500 recordings.');
     const existing=new Set(privateDriveRecords.map(e=>e.driveId));
     let added=0;
     for(const item of items){
@@ -492,10 +493,10 @@ document.getElementById('driveCatalogueFile').addEventListener('change',async ev
       if(row&&!existing.has(row.driveId)){privateDriveRecords.push(row);existing.add(row.driveId);added++;}
     }
     try{
-      localStorage.setItem(PRIVATE_STORE,JSON.stringify(privateDriveRecords.map(e=>({driveId:e.driveId,title:e.title}))));
+      localStorage.setItem(PRIVATE_STORE,JSON.stringify(privateDriveRecords.map(e=>({driveId:e.driveId,title:e.title,folder:e.folder}))));
     }catch{privateImportStatus.textContent='Browser storage unavailable; entries will remain until this tab closes.';}
     refreshPrivate();
-    privateImportStatus.textContent=added+' Drive entries imported; '+privateDriveRecords.length+' private recordings available. No data was uploaded.';
+    privateImportStatus.textContent=added+' Drive entries imported; '+privateDriveRecords.length+' private recordings available.'+(isCsv?' '+imported.stats.empty+' zero-byte entries excluded; '+imported.stats.failed+' unsuccessful copies excluded.':'')+' No data was uploaded. Sign in to the owning Google account when its preview asks.';
   }catch(err){privateImportStatus.textContent='Import failed: '+err.message;}
   event.target.value='';
 });
