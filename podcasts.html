@@ -292,6 +292,7 @@ async function loadCornerstoneEpisodes(){
         showId:String(value.showId)
       });
     }
+    loaded.sort((a,b)=>(a.mode==='audio'?0:1)-(b.mode==='audio'?0:1)||b.date.localeCompare(a.date));
     const present=new Set(loaded.map(e=>e.showId));
     const legacyIds={'cornerstone:original':'293630407','cornerstone:bendigo':'1631726711','cornerstone:paul-roe':'1631658757'};
     const remaining=cornerstone.filter(e=>!present.has(legacyIds[e.id]));
