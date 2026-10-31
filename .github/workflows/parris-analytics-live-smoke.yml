@@ -1,0 +1,25 @@
+name: Parris Analytics public health check
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 0 * * *'
+  push:
+    paths:
+      - 'scripts/parris-analytics-live-smoke.mjs'
+      - '.github/workflows/parris-analytics-live-smoke.yml'
+permissions:
+  contents: read
+concurrency:
+  group: parris-analytics-health
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check live public Worker and database (does not record hits)
+        run: node scripts/parris-analytics-live-smoke.mjs
