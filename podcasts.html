@@ -94,8 +94,8 @@
 
   <section class="player" id="private-recordings" aria-label="Private Cornerstone recordings">
     <div class="player-kicker">Your private Cornerstone archive</div>
-    <h2>Listen to recordings from your own Drive or device</h2>
-    <p>The public Cornerstone recordings load automatically above — no import or login needed. This optional advanced section is only for additional personal recordings. Importing them does not upload their contents or file IDs to the public site. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
+    <h2>Advanced: import extra personal recordings (optional)</h2>
+    <p>Your public Cornerstone recordings load automatically in the catalogue above. This section is optional — no imports or sign-in are needed to listen. This optional advanced section is only for additional personal recordings. Importing them does not upload their contents or file IDs to the public site. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
     <div class="private-import">
       <label for="driveCatalogueFile">Import Cornerstone copy-results CSV or private Drive catalogue JSON</label>
       <input id="driveCatalogueFile" type="file" accept=".csv,text/csv,.json,application/json">
@@ -115,6 +115,10 @@
   <div id="empty" class="empty">No podcasts match that search.</div>
 </main>
 <script>
+// Keep the public listening library first, and the advanced private import below it.
+const optionalPrivateImport=document.getElementById('private-recordings');
+const publicLibraryEnd=document.getElementById('empty');
+if(optionalPrivateImport&&publicLibraryEnd)publicLibraryEnd.after(optionalPrivateImport);
 const episodes = [
 ['73voyV4WuXvPvP45S9cjH4','Remember the Sabbath','BibleProject',['sabbath','bible'],'52 min'],
 ['1ncaSOwNa3FXWfTr0mCxW6','Be Family Around a Table','Practicing the Way',['community','formation'],'56 min'],
@@ -455,8 +459,7 @@ async function loadPublicCornerstoneAudio(){
     for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].id.startsWith('public:drive:'))catalogue.splice(i,1);
     // Put recovered audio first; retain all original feed metadata for historical research.
     catalogue.splice(0,0,...records);
-    if(!new URLSearchParams(location.search).get('episode')&&requestedTopic==='cornerstone'&&records.length)
-      {current=records[0].id;showSelected(current);}
+    // An asynchronous catalogue refresh must never override a listener's selection.
     render();
     cornerstoneFeedStatus.textContent=records.length+' public MP3/M4A recordings with direct audio sources. Choose a recording and press Play. '+cornerstoneFeedStatus.textContent;
   }catch(error){
