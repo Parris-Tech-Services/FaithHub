@@ -1,0 +1,66 @@
+name: Cornerstone missing 2017-18 Mixcloud audio recovery
+on:
+  push:
+    branches:
+      - cornerstone-audio-recovery-20261031
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover-publisher-audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install yt-dlp
+        run: python -m pip install -U yt-dlp
+      - name: Check original publisher audio, validate playable media, and record results
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, pathlib, subprocess, time, json, glob
+          from yt_dlp import YoutubeDL
+          out=pathlib.Path("mixcloud_recovered");out.mkdir(exist_ok=True)
+          talks=[["Muster_2018_Lucas_Frost_First_Things_First",["https://www.mixcloud.com/cornerstonecommunitypodcast/muster-2018-lucas-frost-first-things-first-what-gets-in-the-way/"]],["Muster_2018_Andrew_Vincent_First_Things_First",["https://www.mixcloud.com/cornerstonecommunitypodcast/muster-2018-andrew-vincent-first-things-first/"]],["Muster_2018_Mawson_Skidmore_First_Things_First",["https://www.mixcloud.com/cornerstonecommunitypodcast/muster-2018-mawson-skidmore-first-things-first/"]],["Muster_2017_Lucas_Frost_Talk_3",["https://www.mixcloud.com/cornerstonecommunitypodcast/lucas-frost-2017-southern-regional-muster-talk-3/","https://www.mixcloud.com/cornerstonecommunitypodcast/lucas-frost-2017-southern-regional-mustermp3/"]],["Muster_2017_Laurie_McIntosh_Talk_2",["https://www.mixcloud.com/cornerstonecommunitypodcast/laurie-mcintosh-2017-southern-regional-muster-talk-2/","https://www.mixcloud.com/cornerstonecommunitypodcast/laurie-mcintosh-2017-southern-regional-mustermp3/"]],["Muster_2017_Andrew_Vincent_and_Joshua_Calder_Talk_1",["https://www.mixcloud.com/cornerstonecommunitypodcast/andrew-vincent-joshua-calder-2017-southern-regional-muster-talk-1/"]]]
+          results=[]
+          for name,urls in talks:
+              last=""
+              for url in urls:
+                  try:
+                      opts={"format":"bestaudio/best","outtmpl":str(out/name)+".%(ext)s","noplaylist":True,"retries":1,"fragment_retries":1,"socket_timeout":18,"quiet":True,"no_warnings":True,"extractor_args":{"mixcloud":{"formats":["hls"]}}}
+                      with YoutubeDL(opts) as y:
+                          result=y.extract_info(url,download=True)
+                      if not result:raise ValueError("The service did not provide downloadable audio")
+                      candidates=list(out.glob(name+".*"))
+                      valid=[]
+                      for f in candidates:
+                          if f.stat().st_size<50000:continue
+                          p=subprocess.run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1",str(f)],capture_output=True,text=True,timeout=25)
+                          if p.returncode==0 and p.stdout.strip():valid.append((f,p.stdout.strip()))
+                      if not valid:raise ValueError("No validated playable audio after download")
+                      f,duration=max(valid,key=lambda x:x[0].stat().st_size)
+                      print("RECOVERED",name,f.name,f.stat().st_size,duration,flush=True)
+                      results.append({"name":name,"source":url,"status":"recovered","file":f.name,"bytes":f.stat().st_size,"duration":duration,"error":""})
+                      last=None;break
+                  except Exception as e:
+                      last=str(e)[:300]
+                      print("MIXCLOUD FAILED",name,last,flush=True)
+              if last is not None:results.append({"name":name,"source":urls[0],"status":"missing","file":"","bytes":"","duration":"","error":last})
+          with open("mixcloud_recovery_manifest.csv","w",newline="") as file:
+              w=csv.DictWriter(file,fieldnames=["name","source","status","file","bytes","duration","error"]);w.writeheader();w.writerows(results)
+          print("SUMMARY",len(results),sum(x["status"]=="recovered" for x in results),"recovered",flush=True)
+          
+          PY
+      - name: Save recovered publisher audio and manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cornerstone-mixcloud-recovery-${{ github.run_id }}
+          path: |
+            mixcloud_recovered/
+            mixcloud_recovery_manifest.csv
+          compression-level: 0
+          retention-days: 2
