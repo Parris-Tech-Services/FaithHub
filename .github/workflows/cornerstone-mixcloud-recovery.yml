@@ -33,8 +33,8 @@ jobs:
                       opts={"format":"bestaudio/best","outtmpl":str(out/name)+".%(ext)s","noplaylist":True,"retries":1,"fragment_retries":1,"socket_timeout":18,"quiet":True,"no_warnings":True,"ignoreerrors":False}
                       with YoutubeDL(opts) as y:
                           info=y.extract_info(url,download=False)
-                  print("AVAILABLE FORMATS",name,[(z.get("format_id"),z.get("ext"),z.get("protocol"),__import__("urllib.parse",fromlist=["urlparse"]).urlparse(z.get("url","")).hostname) for z in info.get("formats",[])],flush=True)
-                  result=y.extract_info(url,download=True)
+                          print("AVAILABLE FORMATS",name,[(z.get("format_id"),z.get("ext"),z.get("protocol"),__import__("urllib.parse",fromlist=["urlparse"]).urlparse(z.get("url","")).hostname) for z in info.get("formats",[])],flush=True)
+                          result=y.extract_info(url,download=True)
                       if not result:raise ValueError("The service did not provide downloadable audio")
                       candidates=list(out.glob(name+".*"))
                       valid=[]
