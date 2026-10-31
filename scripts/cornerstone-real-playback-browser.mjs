@@ -78,7 +78,8 @@ try {
       b.addEventListener('click',()=>{window.__mixWidget.play().catch(e=>window.__mixEvents.push({event:'playRejected',details:[e.message],at:Date.now()}));});
       document.body.append(b);
     });
-    await page.locator('#play-ci').click();
+    await page.locator('#play-ci').focus();
+    await page.keyboard.press('Enter');
     clicked=true;console.log('CLICKED_API_PLAY_WITH_USER_GESTURE');
   }
   if(!clicked) console.log('NO_PLAY_CONTROL_FOUND');
