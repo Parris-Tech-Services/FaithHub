@@ -28,3 +28,14 @@ jobs:
           except Exception as e:
               print('MIXCLOUD_UNAVAILABLE',type(e).__name__,str(e)[:250])
           PY
+      - name: Merge public Mixcloud with RSS and report verified source coverage
+        run: |
+          python3 scripts/build-cornerstone-catalogue.py --output /tmp/cornerstone-mixcloud-episodes.json --require-at-least 115
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/cornerstone-mixcloud-episodes.json'))
+          from collections import Counter
+          print('MIXCLOUD_MERGED_COUNT',d['mixcloud'])
+          print('MIXCLOUD_FINAL_MODES',dict(Counter(x['mode'] for x in d['episodes'])))
+          print('MIXCLOUD_TRACKS',len(d['episodes']))
+          PY
