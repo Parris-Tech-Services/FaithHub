@@ -4,15 +4,36 @@ import {chromium} from 'playwright';
 
 const base=(process.env.FAITHHUB_URL||'http://127.0.0.1:8765').replace(/\/$/,'');
 const browser=await chromium.launch({headless:true});
+// Synthetic catalogue replaces the public feed only in ephemeral CI browsers.
+const publicFeedFixture={
+  version:1,shows:[
+    {showId:293630407,title:'Cornerstone Community Podcast',expectedByPublisher:96},
+    {showId:1631726711,title:'Cornerstone Community Bendigo',expectedByPublisher:18},
+    {showId:1631658757,title:'Cornerstone Community Bendigo — Paul Roe',expectedByPublisher:1}
+  ],
+  episodes:Array.from({length:115},(_,i)=>{
+    const old=i<96,paul=i===114;
+    const id=old?'293630407':paul?'1631658757':'1631726711';
+    const title=paul?'Paul Roe — The Character of Jesus':old?'Cornerstone archive talk '+(i+1):'Bendigo Muster '+(i-95);
+    return {
+      id:'cornerstone:episode:'+id+':fixture-'+i,title,show:old?'Cornerstone Community Podcast':paul?'Paul Roe':"Cornerstone Community Bendigo",
+      tags:['cornerstone','discipleship'],duration:'38 min',provider:old?'external':'audio',mode:old?'unavailable':'audio',
+      url:'https://podcasts.apple.com/au/podcast/id'+id,
+      embed:'https://public-media.example.org/audio/'+i+'.mp3',date:'2018-12-01',note:'Synthetic browser fixture',showId:id
+    };
+  })
+};
+const addFixture=page=>page.route('**/cornerstone-episodes.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(publicFeedFixture)}));
 try{
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1,locale:'en-AU'});
   const page=await context.newPage();
+  await addFixture(page);
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   const response=await page.goto(base+'/podcasts.html',{waitUntil:'domcontentloaded',timeout:30000});
   assert.equal(response?.status(),200);
-  await page.getByText('33 of 33 recordings shown').waitFor();
-  assert.equal(await page.locator('#grid article').count(),33);
+  await page.getByText('145 of 145 recordings shown').waitFor();
+  assert.equal(await page.locator('#grid article').count(),145);
   assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,'No provider embed before selection');
   await page.locator('#search').fill('Augustine');
   assert.equal(await page.locator('#grid article').count(),1);
@@ -21,21 +42,28 @@ try{
   assert.match(await page.locator('#publisherLink').getAttribute('href'),/podcasts\.apple\.com\/au/);
   await page.locator('#search').fill('');
   await page.locator('#filter').selectOption('audio');
-  assert.equal(await page.locator('#grid article').count(),1);
-  await page.locator('#grid [data-select]').click();
+  assert.equal(await page.locator('#grid article').count(),20);
+  await page.locator('#grid [data-select]').first().click();
   assert.equal(await page.locator('#playerHost iframe').count(),0,'Previous Apple iframe removed');
   assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
   assert.equal(await page.locator('#publisherLink').getAttribute('href'),'https://www.discerninghearts.com/catholic-podcasts/dh-daily-lenten-school-prayer-st-teresa-avila-chap-26-way-perfection/');
   await page.locator('#filter').selectOption('external');
-  assert.equal(await page.locator('#grid article').count(),4,'Existing external prayer and three Cornerstone collections');
+  assert.equal(await page.locator('#grid article').count(),97,'Existing external prayer + 96 historical recordings with unavailable audio');
   assert.equal(await page.locator('#grid [data-select]').count(),0,'External-only content should never claim playable audio');
   await page.locator('#search').fill('Pray As You Go');
   assert.equal(await page.locator('#grid article').count(),1);
   assert.equal(await page.locator('#grid article a').getAttribute('href'),'https://prayasyougo.org/');
   await page.locator('#search').fill('');
   await page.locator('#filter').selectOption('cornerstone');
-  assert.equal(await page.locator('#grid article').count(),3);
-  assert.equal(await page.locator('#grid [data-select]').count(),0,'Cornerstone links open at official publisher, not fake embeds');
+  assert.equal(await page.locator('#grid article').count(),115);
+  assert.equal(await page.locator('#grid [data-select]').count(),19,'19 source streams should be selectable in-page');
+  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 Cornerstone episodes catalogued: 19/);
+  await page.locator('#search').fill('Paul Roe');
+  assert.equal(await page.locator('#grid article').count(),1);
+  await page.locator('#grid [data-select]').click();
+  assert.match(await page.locator('#playerHost audio').getAttribute('src'),/114\.mp3$/);
+  await page.locator('#search').fill('');
+  assert.equal(await page.locator('#grid [data-select]').count(),19);
   await page.locator('#filter').selectOption('spotify');
   assert.equal(await page.locator('#grid article').count(),25);
   await page.locator('#grid [data-select]').first().click();
@@ -65,12 +93,14 @@ try{
 
   const desktop=await browser.newContext({viewport:{width:1366,height:900}});
   const dp=await desktop.newPage();
+  await addFixture(dp);
   await dp.goto(base+'/podcasts.html',{waitUntil:'domcontentloaded'});
-  assert.equal(await dp.locator('#grid article').count(),33);
+  await dp.getByText('145 of 145 recordings shown').waitFor();
+  assert.equal(await dp.locator('#grid article').count(),145);
   await dp.locator('#filter').selectOption('prayer');
   assert.ok(await dp.locator('#grid article').count()>=5);
   await desktop.close();
-  console.log('PASS: unified 33-item catalogue, Apple/Spotify/publisher player selection, external fallback, search, mobile, desktop, deep links and legacy migration.');
+  console.log('PASS: unified 145-item catalogue (30 original+115 Cornerstone, 19 streamable), Apple/Spotify/publisher player selection, external fallback, search, mobile, desktop, deep links and legacy migration.');
 } finally{
   await browser.close();
 }
