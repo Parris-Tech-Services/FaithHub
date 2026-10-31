@@ -224,7 +224,9 @@ def merge_mixcloud(episodes, reports):
             best["provider"] = "mixcloud"
             best["url"] = track["url"]
             best["embed"] = track["embed"]
-            best["streamableAtBuild"] = True
+            best["streamableAtBuild"] = False # An iframe renders but real audio is NOT verified.
+            best["matchMethod"] = "title-similarity-not-acoustic-proof"
+            best["matchConfidence"] = round(best_score, 4)
             best["note"] = best["note"].replace(
                 "Archive audio host was unavailable during the last source check; recording is listed for discovery, not marked playable.", ""
             ).strip()
@@ -238,7 +240,7 @@ def merge_mixcloud(episodes, reports):
                 "duration": "", "provider": "mixcloud", "mode": "mixcloud",
                 "url": track["url"], "embed": track["embed"],
                 "date": track["published"], "note": "Publisher-hosted Mixcloud player; no audio rehosted.",
-                "showId": "293630407", "streamableAtBuild": True
+                "showId": "293630407", "streamableAtBuild": False, "matchMethod": "Mixcloud-only publication"
             })
             extras += 1
     for report in reports:
@@ -328,6 +330,28 @@ def build():
         show["streamableAtBuild"] = sum(e["streamableAtBuild"] for e in items)
         show["unavailableAtBuild"] = len(items) - show["streamableAtBuild"]
     mixcloud = merge_mixcloud(episodes, reports)
+    real_playback_failures = {
+        "the heart of the father – part 1",
+        "muster 2018 - andrew vincent - first things first",
+    }
+    for entry in episodes:
+        if entry["mode"] == "unavailable":
+            entry["verificationStatus"] = "MISSING"
+        elif entry["mode"] == "audio":
+            entry["verificationStatus"] = "SOURCE_REACHABLE"
+        elif entry["mode"] == "mixcloud":
+            # Verified using the original Mixcloud Widget API in Chromium:
+            # these tracks emitted play/pause without time advancing.
+            entry["verificationStatus"] = ("PLAYBACK_FAILED" if entry["title"].casefold() in real_playback_failures
+                                          else "EMBED_ONLY")
+        else:
+            entry["verificationStatus"] = "EMBED_ONLY"
+    for report in reports:
+        subset = [e for e in episodes if e["showId"] == str(report["showId"])]
+        report["verifiedPlaybackCount"] = sum(e["verificationStatus"] == "VERIFIED_PLAYABLE" for e in subset)
+        report["embedOnlyCount"] = sum(e["verificationStatus"] == "EMBED_ONLY" for e in subset)
+        report["playbackFailedCount"] = sum(e["verificationStatus"] == "PLAYBACK_FAILED" for e in subset)
+        report["sourceReachableCount"] = sum(e["verificationStatus"] == "SOURCE_REACHABLE" for e in subset)
     episodes.sort(key=lambda x: (x["mode"] == "unavailable", x.get("date", ""), x["title"]))
     return {"version": 1, "generatedAt": datetime.now(timezone.utc).isoformat(), "shows": reports, "episodes": episodes, "mixcloud": mixcloud}
 
@@ -340,6 +364,20 @@ def main():
     path = Path(args.output)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    inventory_path = path.with_name("cornerstone-audio-inventory.json")
+    inventory = {
+      "version": 1, "generatedAt": data["generatedAt"],
+      "scope": "Public-source only: does not include private Drive file IDs or copyrighted audio.",
+      "identityCaveat": "117 catalogue entries are not 117 acoustically unique tracks; title-matched Mixcloud entries require fingerprint confirmation.",
+      "counts": {s: sum(e["verificationStatus"] == s for e in data["episodes"])
+                 for s in ("VERIFIED_PLAYABLE","SOURCE_REACHABLE","EMBED_ONLY","PLAYBACK_FAILED","PRIVATE_AUTH_REQUIRED","MISSING")},
+      "shows": data["shows"],
+      "records": [{k: entry.get(k) for k in (
+          "id","showId","title","show","date","duration","mode","url","verificationStatus",
+          "matchMethod","matchConfidence") if k in entry} for entry in data["episodes"]]
+    }
+    inventory_path.write_text(json.dumps(inventory,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    print("Public-only audit inventory:",inventory_path,"counts",inventory["counts"])
     total = len(data["episodes"])
     print(f"Cornerstone audio catalogue: {total} episodes resolved; wrote {path}")
     if total < args.require_at_least:
