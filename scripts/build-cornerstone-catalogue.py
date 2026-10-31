@@ -338,7 +338,16 @@ def build():
         if entry["mode"] == "unavailable":
             entry["verificationStatus"] = "MISSING"
         elif entry["mode"] == "audio":
-            entry["verificationStatus"] = "SOURCE_REACHABLE"
+            # Exact published episode identities independently verified in Actions run
+            # 41193048655. A five-second browser progress test, not just HTTP 206.
+            verified_ids = ["cornerstone:episode:1631726711:a87f84ce375dcc215c8a","cornerstone:episode:1631726711:40a9975585324e794d7e","cornerstone:episode:1631726711:6a15dd3e798041f3668c","cornerstone:episode:1631726711:77fadccd1031f5992845","cornerstone:episode:1631726711:d2335b33220a1b54adb8","cornerstone:episode:1631726711:34b1cddf18befc2916d8","cornerstone:episode:1631726711:d803d62ea7fd0770b65c","cornerstone:episode:1631726711:0b2bbf694215ea8bb682","cornerstone:episode:1631726711:f3663f892340d1b0f073","cornerstone:episode:1631726711:5f608ba3de3d28001faf","cornerstone:episode:1631726711:ad4ab74442cc8faa52cc","cornerstone:episode:1631726711:dfc8e66afdc4d68c0737","cornerstone:episode:1631726711:cb8c240ff4b3decb9060","cornerstone:episode:1631726711:5b13d615e4f2af2e4348"]
+            playback_failed_ids = ["cornerstone:episode:1631658757:8bc0ae64790054691df1","cornerstone:episode:1631726711:f9a351b0b2aa7783986c","cornerstone:episode:1631726711:8d912df1ef15be1f361c","cornerstone:episode:1631726711:9f3639a9c700af38a022","cornerstone:episode:1631726711:4bbac5cfd033b817578a"]
+            if entry["id"] in verified_ids:
+                entry["verificationStatus"] = "VERIFIED_PLAYABLE"
+            elif entry["id"] in playback_failed_ids:
+                entry["verificationStatus"] = "PLAYBACK_FAILED"
+            else:
+                entry["verificationStatus"] = "SOURCE_REACHABLE"
         elif entry["mode"] == "mixcloud":
             # Verified using the original Mixcloud Widget API in Chromium:
             # these tracks emitted play/pause without time advancing.
