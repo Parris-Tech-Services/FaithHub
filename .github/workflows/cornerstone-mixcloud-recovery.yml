@@ -56,6 +56,79 @@ jobs:
           print("SUMMARY",len(results),sum(x["status"]=="recovered" for x in results),"recovered",flush=True)
           
           PY
+      - name: Search archived CMS and feedproxy snapshots for six missing episodes
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, requests, urllib.parse, subprocess, pathlib, os, json, time
+          from yt_dlp import YoutubeDL
+          T=[["2018 Andrew Vincent","https://cms.cornerstone.edu.au/s3webstorage/1715/5281/1631/Muster_2018_-_Andrew_Vincent_-_First_Things_First.mp3"],["2018 Mawson Skidmore","https://cms.cornerstone.edu.au/s3webstorage/8715/5281/1634/Muster_2018_-_Mawson_Skidmore_-_First_things_First.mp3"],["2018 Lucas Frost","https://cms.cornerstone.edu.au/s3webstorage/3615/5281/1638/Muster_2018_Lucas_Frost_-_First_things_First_What_Gets_in_the_Way.mp3"],["2017 Lucas Frost","https://cms.cornerstone.edu.au/s3webstorage/7715/0335/2324/Lucas_Frost_-_2017_Southern_Regional_Muster.mp3"],["2017 Laurie McIntosh","https://cms.cornerstone.edu.au/s3webstorage/5715/0335/2321/Laurie_McIntosh_-_2017_Southern_Regional_Muster.mp3"],["2017 Andrew Vincent Joshua Calder","https://cms.cornerstone.edu.au/s3webstorage/2215/0335/2318/Andrew_Vincent__Joshua_Calder_-_2017_Southern_Regional_Muster.mp3"]]
+          out=pathlib.Path("archive_recovered");out.mkdir(exist_ok=True)
+          reports=[]
+          S=requests.Session();S.headers.update({"User-Agent":"Cornerstone audio archive audit (recover public historical audio)"})
+          for title,original in T:
+            candidates=[original]
+            path=urllib.parse.urlsplit(original).path
+            for root in ["https://www.cornerstone.edu.au","http://cornerstone.edu.au","http://www.cornerstone.edu.au"]:
+              candidates.append(root+path)
+            source_mixcloud={"2018 Andrew Vincent":"muster-2018-andrew-vincent-first-things-first","2018 Mawson Skidmore":"muster-2018-mawson-skidmore-first-things-first","2018 Lucas Frost":"muster-2018-lucas-frost-first-things-first-what-gets-in-the-way","2017 Lucas Frost":"lucas-frost-2017-southern-regional-muster-talk-3","2017 Laurie McIntosh":"laurie-mcintosh-2017-southern-regional-muster-talk-2","2017 Andrew Vincent Joshua Calder":"andrew-vincent-joshua-calder-2017-southern-regional-muster-talk-1"}
+            try:
+              with YoutubeDL({"quiet":True,"skip_download":True,"no_warnings":True}) as dl:
+                info=dl.extract_info("https://www.mixcloud.com/cornerstonecommunitypodcast/"+source_mixcloud[title]+"/",download=False)
+              for fmt in info.get("formats",[]):
+                link=fmt.get("url","")
+                if link.startswith("http"):candidates.append(link)
+            except Exception as e:print("source lookup failure",title,str(e)[:120],flush=True)
+            existing=set()
+            capture_urls=[]
+            for u in candidates:
+              if u in existing:continue
+              existing.add(u)
+              try:
+                r=S.get("https://archive.org/wayback/available",params={"url":u},timeout=(6,14))
+                if r.ok:
+                  closest=r.json().get("archived_snapshots",{}).get("closest",{})
+                  if closest.get("available") and str(closest.get("status"))=="200":capture_urls.append(closest["url"])
+                print("WAYBACK_AVAIL",title,urllib.parse.urlsplit(u).netloc,r.status_code,repr(closest.get("timestamp",None)) if r.ok else "",flush=True)
+              except Exception as e:print("WAYBACK_AVAIL_ERROR",title,str(e)[:110],flush=True)
+              if u==original or "feedproxy.google.com" in u:
+                try:
+                  rr=S.get("https://web.archive.org/cdx/search/cdx",params={"url":u,"output":"json","filter":"statuscode:200","limit":"12"},timeout=(6,18))
+                  if rr.ok and rr.text.startswith("["):
+                    cdx=rr.json()
+                    print("CDX_MATCHES",title,len(cdx)-1,flush=True)
+                    for rec in cdx[1:]:
+                      if len(rec)>2: capture_urls.append("https://web.archive.org/web/"+rec[1]+"id_/"+rec[2])
+                  else: print("CDX_STATUS",title,rr.status_code,rr.text[:60],flush=True)
+                except Exception as e:print("CDX_ERROR",title,str(e)[:140],flush=True)
+            successful=""
+            for u in dict.fromkeys(capture_urls):
+              filepath=out/(pathlib.PurePosixPath(path).name)
+              try:
+                with S.get(u,timeout=(8,60),stream=True) as rr:
+                  rr.raise_for_status()
+                  with open(filepath,"wb") as handle:
+                    total=0
+                    for chunk in rr.iter_content(1048576):
+                      if chunk:
+                        total+=len(chunk)
+                        if total>140_000_000:raise ValueError("too large")
+                        handle.write(chunk)
+                if filepath.stat().st_size<50_000:raise ValueError("too small")
+                p=subprocess.run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1",str(filepath)],capture_output=True,text=True,timeout=20)
+                if p.returncode or not p.stdout.strip():raise ValueError("not audio")
+                print("SAVED_VALID_AUDIO",title,filepath.stat().st_size,p.stdout.strip(),flush=True)
+                successful=str(filepath);break
+              except Exception as e:
+                print("CAPTURE_DOWNLOAD_FAILED",title,str(e)[:100],flush=True)
+                try:filepath.unlink()
+                except:pass
+            reports.append({"title":title,"original_url":original,"wayback_candidates":len(capture_urls),"recovered_file":successful})
+          with open("wayback_six_manifest.csv","w",newline="") as fh:
+            w=csv.DictWriter(fh,fieldnames=["title","original_url","wayback_candidates","recovered_file"]);w.writeheader();w.writerows(reports)
+          print("WAYBACK_SUMMARY",len(reports),sum(bool(r["recovered_file"]) for r in reports),flush=True)
+          
+          PY
       - name: Save recovered publisher audio and manifest
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,5 +137,7 @@ jobs:
           path: |
             mixcloud_recovered/
             mixcloud_recovery_manifest.csv
+            archive_recovered/
+            wayback_six_manifest.csv
           compression-level: 0
           retention-days: 2
