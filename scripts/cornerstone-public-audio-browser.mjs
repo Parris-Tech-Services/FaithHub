@@ -13,7 +13,7 @@ try{
  await page.getByText(/205 public MP3\/M4A recordings with direct audio sources/).waitFor({timeout:15000});
  await page.locator('#filter').selectOption('cornerstone-public');
  assert.equal(await page.locator('#grid article').count(),205);
- await page.locator('#search').fill('Muster 2013 Session 1');
+ await page.locator('#search').fill('Muster-2013-Session-1');
  assert.equal(await page.locator('#grid article').count(),1);
  await page.locator('#grid article').getByRole('button',{name:'Listen here'}).click();
  const audio=page.locator('#playerHost audio');
