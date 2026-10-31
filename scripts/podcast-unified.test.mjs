@@ -78,3 +78,19 @@ test('each compatible saints resource links back to the same catalogue',()=>{
   }
   assert.ok(guide.includes('https://prayasyougo.org/'));
 });
+
+test('Cornerstone catalogue adds 115 individual audio/archival entries and never fakes inaccessible streams',()=>{
+  assert.match(page,/async function loadCornerstoneEpisodes\(\)/);
+  assert.match(page,/cornerstone-episodes\.json/);
+  assert.match(page,/loaded\.filter\(e=>e\.mode==='audio'\)\.length/);
+  assert.match(page,/loaded\.filter\(e=>e\.mode==='unavailable'\)\.length/);
+  assert.match(page,/e\.mode==='external'\|\|e\.mode==='unavailable'/);
+  assert.match(page,/audio\.addEventListener\('error'/);
+  assert.match(page,/source could not be reached/);
+  assert.match(page,/catalogue\.splice\(0,catalogue\.length/);
+  assert.match(page,/data\.episodes\.slice\(0,500\)/);
+  assert.match(page,/e\.mode==='audio'/);
+  assert.match(page,/loadCornerstoneEpisodes\(\)/);
+  assert.match(page,/preload='none'/);
+  assert.match(page,/https:/);
+});
