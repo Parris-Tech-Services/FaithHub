@@ -197,6 +197,36 @@ def build():
             "errors": errors
         })
         print(f"{show_id}: RSS={len(rss)} AppleAPI={len(api)} unique={len(found)} published={expected}; {'; '.join(errors)}", file=sys.stderr)
+    # Test a 32-byte range from one episode per audio HOST, never bulk-download.
+    # A defunct archive can still have metadata; distinguish it from audio that
+    # was actually reachable at publication time.
+    availability = {}
+    for entry in episodes:
+        host = urllib.parse.urlsplit(entry["embed"]).hostname
+        if host not in availability:
+            try:
+                probe = urllib.request.Request(entry["embed"], headers={
+                    "User-Agent": "Mozilla/5.0", "Range": "bytes=0-31"
+                })
+                with urllib.request.urlopen(probe, timeout=14) as response:
+                    prefix = response.read(32)
+                    kind = response.headers.get("Content-Type", "").lower()
+                    availability[host] = bool(prefix) and response.status in (200, 206) and (
+                        "audio/" in kind or "octet-stream" in kind
+                    )
+                    print("STREAM", host, response.status, kind, "reachable=", availability[host], file=sys.stderr)
+            except Exception as exc:
+                availability[host] = False
+                print("STREAM UNAVAILABLE", host, type(exc).__name__, str(exc)[:130], file=sys.stderr)
+        entry["streamableAtBuild"] = availability[host]
+        if not availability[host]:
+            entry["mode"] = "unavailable"
+            entry["provider"] = "external"
+            entry["note"] = (entry["note"] + " " if entry["note"] else "") + "Archive audio host was unavailable during the last source check; recording is listed for discovery, not marked playable."
+    for show in reports:
+        items = [e for e in episodes if e["showId"] == str(show["showId"])]
+        show["streamableAtBuild"] = sum(e["streamableAtBuild"] for e in items)
+        show["unavailableAtBuild"] = len(items) - show["streamableAtBuild"]
     return {"version": 1, "generatedAt": datetime.now(timezone.utc).isoformat(), "shows": reports, "episodes": episodes}
 
 def main():
