@@ -1,0 +1,28 @@
+name: Cornerstone Colab manifest browser acceptance
+on:
+  push:
+    branches: [feat/cornerstone-calder-private-manifest-20261101]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests for FaithHub podcast + CSV parsing
+        run: node --test scripts/*.test.mjs
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test private CSV import on mobile browser
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/server.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          node scripts/cornerstone-manifest-browser.mjs
