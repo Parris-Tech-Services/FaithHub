@@ -38,4 +38,13 @@ jobs:
           print('MIXCLOUD_MERGED_COUNT',d['mixcloud'])
           print('MIXCLOUD_FINAL_MODES',dict(Counter(x['mode'] for x in d['episodes'])))
           print('MIXCLOUD_TRACKS',len(d['episodes']))
+          print('MIXCLOUD_UNRECOVERED',[(e['title'],e['id']) for e in d['episodes'] if e['mode']=='unavailable'])
+          print('MIXCLOUD_EXTRA_UPLOADS',[e['title'] for e in d['episodes'] if ':mixcloud:' in e['id']])
+          import urllib.request
+          one=next((e for e in d['episodes'] if e['mode']=='mixcloud'),None)
+          if one:
+            try:
+              with urllib.request.urlopen(urllib.request.Request(one['embed'],headers={'User-Agent':'Mozilla/5.0'}),timeout=15) as resp:
+                print('MIXCLOUD_WIDGET_STATUS',resp.status,resp.headers.get('Content-Type'),resp.url)
+            except Exception as ex: print('MIXCLOUD_WIDGET_ERROR',type(ex).__name__,str(ex)[:150])
           PY
