@@ -41,6 +41,10 @@
     #playerHost iframe{width:100%;min-height:175px;height:175px}
     #playerHost iframe.apple-show{min-height:450px;height:450px}
     #playerHost audio{display:block;width:100%;min-height:54px}
+    .private-import{display:grid;gap:10px}
+    .private-import input[type=file]{width:100%;max-width:100%;font:inherit;padding:12px;border:1px solid var(--border);border-radius:12px}
+    .private-import label{font-weight:700}
+    .private-import p{margin-bottom:0}
     .player-placeholder{padding:17px;border:1px solid #777;border-radius:12px;color:var(--muted)}
     .mode{font-size:.8rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:0 0 6px}
     .card .note{margin:0 0 14px}
@@ -85,9 +89,23 @@
     <p class="note">Select an episode to play its original publisher-hosted recording here. Audio is not copied to FaithHub. Some hosts or browsers may block playback; the original source link remains available in that case. Nothing loads until you select a recording.</p>
   </section>
 
+  <section class="player" id="private-recordings" aria-label="Private Cornerstone recordings">
+    <div class="player-kicker">Your private Cornerstone archive</div>
+    <h2>Listen to recordings from your own Drive or device</h2>
+    <p>Import a private Cornerstone catalogue (JSON) to show your original Drive recordings here. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
+    <div class="private-import">
+      <label for="driveCatalogueFile">Import your private Google Drive catalogue (JSON)</label>
+      <input id="driveCatalogueFile" type="file" accept=".json,application/json">
+      <label for="privateAudioFiles">Or select local MP3 / M4A audio files to listen here immediately</label>
+      <input id="privateAudioFiles" type="file" accept=".mp3,.m4a,audio/mpeg,audio/mp4,audio/*" multiple>
+      <div class="actions"><button class="btn" id="clearPrivateCatalogue" type="button">Remove my imported Drive catalogue from this browser</button><button class="btn" id="clearLocalAudio" type="button">Clear temporary local audio</button></div>
+    </div>
+    <p id="privateImportStatus" class="status" role="status" aria-live="polite">Private recordings have not been imported on this browser.</p>
+  </section>
+
   <section id="catalogue" aria-label="Search the podcast catalogue">
     <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Paul Roe, Laurie, Romans, Joy, Teresa or Sabbath" /></div>
-    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — playable here</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — playable here</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="cornerstone-private">Cornerstone — my private recordings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
     <p id="resultCount" role="status"></p><p id="cornerstoneFeedStatus" class="status" role="status" aria-live="polite">Loading Cornerstone episodes from the published podcast feeds…</p>
   </section>
   <section id="grid" class="grid"></section>
@@ -155,6 +173,7 @@ const playbackStatus=document.getElementById('playbackStatus');
 const publisherLink=document.getElementById('publisherLink');
 const randomBtn=document.getElementById('randomBtn');
 const cornerstoneFeedStatus=document.getElementById('cornerstoneFeedStatus');
+const privateImportStatus=document.getElementById('privateImportStatus');
 const requestedEpisode=new URLSearchParams(window.location.search).get('episode');
 const requestedTopic=new URLSearchParams(window.location.search).get('topic');
 let current=requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode)?requestedEpisode:loadCurrent();
@@ -242,7 +261,7 @@ function pickDifferent(){
 function matches(e){
   const q=search.value.trim().toLocaleLowerCase();
   const selected=filter.value;
-  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||(selected==='cornerstone-audio'&&e.tags.includes('cornerstone')&&['audio','mixcloud','drive','local'].includes(e.mode))||(selected==='cornerstone-archive'&&e.tags.includes('cornerstone')&&e.mode==='unavailable')||selected===e.provider;
+  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||(selected==='cornerstone-audio'&&e.tags.includes('cornerstone')&&['audio','mixcloud','drive','local'].includes(e.mode))||(selected==='cornerstone-archive'&&e.tags.includes('cornerstone')&&e.mode==='unavailable')||(selected==='cornerstone-private'&&['drive','local'].includes(e.mode))||selected===e.provider;
   return inGroup&&[e.title,e.show,e.note,e.duration,categoryLabel(e)].concat(e.tags).join(' ').toLocaleLowerCase().includes(q);
 }
 function render(){
@@ -310,7 +329,7 @@ async function loadCornerstoneEpisodes(){
     const legacyIds={'cornerstone:original':'293630407','cornerstone:bendigo':'1631726711','cornerstone:paul-roe':'1631658757'};
     const remaining=cornerstone.filter(e=>!present.has(legacyIds[e.id]));
     const spotify=catalogue.filter(e=>e.provider==='spotify');
-    catalogue.splice(0,catalogue.length,...featured,...remaining,...loaded,...spotify);
+    catalogue.splice(0,catalogue.length,...featured,...remaining,...loaded,...privateDriveRecords,...localAudioRecords,...spotify);
     if(!catalogue.some(e=>e.id===current)){
       current=loaded[0]?.id||featured[0].id;
       showSelected(current);
@@ -330,6 +349,94 @@ async function loadCornerstoneEpisodes(){
   }
 }
 loadCornerstoneEpisodes();
+
+// Private recordings are NEVER included in the static public podcast feed.
+// The catalogue is user-supplied, and only its metadata is stored locally.
+// MP3/M4A files stay in volatile browser memory as short-lived blob URLs.
+const PRIVATE_STORE='faithhub-cornerstone-drive-private-v1';
+const privateDriveRecords=[];
+const localAudioRecords=[];
+function privateRow(x){
+  if(!x||typeof x.title!=='string'||typeof x.driveId!=='string')return null;
+  const id=x.driveId.trim(),title=x.title.trim();
+  if(!/^[A-Za-z0-9_-]{15,120}$/.test(id)||!title||title.length>240)return null;
+  return {
+    id:'private:drive:'+id,title,driveId:id,show:'Your private Google Drive archive',
+    tags:['cornerstone','private','drive'],duration:'',provider:'drive',mode:'drive',
+    url:'https://drive.google.com/file/d/'+encodeURIComponent(id)+'/view',
+    note:'Private Google Drive preview. Playback depends on your existing Drive permissions and browser sign-in.'
+  };
+}
+function restorePrivateCatalogue(){
+  try{
+    const data=JSON.parse(localStorage.getItem(PRIVATE_STORE)||'[]');
+    if(!Array.isArray(data))return;
+    const seen=new Set();
+    for(const item of data.slice(0,500)){
+      const row=privateRow(item);
+      if(row&&!seen.has(row.driveId)){seen.add(row.driveId);privateDriveRecords.push(row);}
+    }
+  }catch{/* Invalid or blocked storage does not affect the public player. */}
+}
+function refreshPrivate(){
+  for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].mode==='drive'||catalogue[i].mode==='local')catalogue.splice(i,1);
+  catalogue.push(...privateDriveRecords,...localAudioRecords);
+  if(!catalogue.some(e=>e.id===current)){current=featured[0].id;showSelected(current);}
+  render();
+}
+restorePrivateCatalogue();
+refreshPrivate();
+if(privateDriveRecords.length)privateImportStatus.textContent=privateDriveRecords.length+' private Drive file(s) loaded on this device. Sign in to the source Google account if its embedded preview asks.';
+document.getElementById('driveCatalogueFile').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];
+  if(!file)return;
+  try{
+    if(file.size>300000)throw new Error('Catalogue limit: 300 KB');
+    const imported=JSON.parse(await file.text());
+    const items=Array.isArray(imported)?imported:imported?.recordings;
+    if(!Array.isArray(items)||items.length>500)throw new Error('Expected JSON with a recordings array containing up to 500 entries.');
+    const existing=new Set(privateDriveRecords.map(e=>e.driveId));
+    let added=0;
+    for(const item of items){
+      const row=privateRow(item);
+      if(row&&!existing.has(row.driveId)){privateDriveRecords.push(row);existing.add(row.driveId);added++;}
+    }
+    try{
+      localStorage.setItem(PRIVATE_STORE,JSON.stringify(privateDriveRecords.map(e=>({driveId:e.driveId,title:e.title}))));
+    }catch{privateImportStatus.textContent='Browser storage unavailable; entries will remain until this tab closes.';}
+    refreshPrivate();
+    privateImportStatus.textContent=added+' Drive entries imported; '+privateDriveRecords.length+' private recordings available. No data was uploaded.';
+  }catch(err){privateImportStatus.textContent='Import failed: '+err.message;}
+  event.target.value='';
+});
+document.getElementById('privateAudioFiles').addEventListener('change',event=>{
+  const files=[...(event.target.files||[])];
+  let count=0;
+  for(const file of files.slice(0,100)){
+    if(file.size>250000000||file.size<=0||!(/\.(mp3|m4a)$/i.test(file.name)||/^audio\//.test(file.type)))continue;
+    const objectUrl=URL.createObjectURL(file);
+    localAudioRecords.push({
+      id:'private:local:'+Date.now()+':'+count++,title:file.name.replace(/\.(mp3|m4a)$/i,''),
+      show:'Your on-device MP3/M4A',tags:['cornerstone','private','audio'],duration:'',
+      mode:'local',provider:'audio',url:objectUrl,embed:objectUrl,
+      note:'On-device audio only. Reloading the page requires selecting this file again.'
+    });
+  }
+  refreshPrivate();
+  privateImportStatus.textContent=count+' audio file(s) loaded from this device. No files uploaded. Playback works here until this page is reloaded.';
+  event.target.value='';
+});
+document.getElementById('clearPrivateCatalogue').addEventListener('click',()=>{
+  privateDriveRecords.length=0;
+  try{localStorage.removeItem(PRIVATE_STORE);}catch{}
+  refreshPrivate();
+  privateImportStatus.textContent='Saved private Drive catalogue removed from this browser.';
+});
+document.getElementById('clearLocalAudio').addEventListener('click',()=>{
+  for(const entry of localAudioRecords){if(entry.embed?.startsWith('blob:'))URL.revokeObjectURL(entry.embed);}
+  localAudioRecords.length=0;refreshPrivate();
+  privateImportStatus.textContent='Temporary local recordings cleared. Nothing was uploaded.';
+});
 
 </script>
 </body>
