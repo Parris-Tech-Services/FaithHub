@@ -39,3 +39,20 @@ jobs:
                           print('DATA',{'keys':list(x.keys())[:30],'type':x.get('wrapperType'),'kind':x.get('kind'),'collection':x.get('collectionType'),'collectionId':x.get('collectionId'),'feedUrl':x.get('feedUrl'),'episodeUrl':x.get('episodeUrl'),'trackName':x.get('trackName')})
                   except Exception as e: print('ERROR',show,type(e).__name__,str(e)[:120])
           PY
+
+      - name: Probe small ranges of the published audio streams
+        run: |
+          python - <<'PY'
+          import json,urllib.request
+          data=json.load(open('/tmp/cornerstone-episodes.json'))
+          for show in data['shows']:
+              songs=[e for e in data['episodes'] if e['showId']==str(show['showId'])]
+              for e in songs[:2]:
+                  try:
+                      req=urllib.request.Request(e['embed'],headers={'User-Agent':'Mozilla/5.0','Range':'bytes=0-31'})
+                      with urllib.request.urlopen(req,timeout=14) as res:
+                          head=res.read(32)
+                          print('AUDIO',show['showId'],res.status,res.headers.get('Content-Type'),len(head),res.url.split('/')[2])
+                  except Exception as err:
+                      print('AUDIO FAILED',show['showId'],e['title'],str(err)[:130])
+          PY
