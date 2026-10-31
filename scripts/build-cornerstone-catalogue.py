@@ -7,6 +7,7 @@ are used. Fail closed on invalid/HTTP audio URLs.
 """
 from __future__ import annotations
 import argparse
+from difflib import SequenceMatcher
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from hashlib import sha256
@@ -151,6 +152,105 @@ def apple_entries(show_id, label, results):
             out.append(entry)
     return out
 
+def mixcloud_public_catalogue():
+    """Read only publisher-listed tracks, never Mixcloud raw streaming media."""
+    next_url = "https://api.mixcloud.com/cornerstonecommunitypodcast/cloudcasts/?limit=100"
+    tracks = []
+    seen = set()
+    for _ in range(4):
+        if not next_url or not next_url.startswith("https://api.mixcloud.com/cornerstonecommunitypodcast/cloudcasts/"):
+            break
+        page = request_json(next_url)
+        for track in page.get("data", []):
+            key = track.get("key", "")
+            source = track.get("url", "")
+            if (not isinstance(key, str) or
+                not re.fullmatch(r"/cornerstonecommunitypodcast/[a-zA-Z0-9_-]+/", key) or
+                source != "https://www.mixcloud.com" + key or key in seen):
+                continue
+            if not cleaned(track.get("name"), 240):
+                continue
+            seen.add(key)
+            tracks.append({
+                "name": cleaned(track.get("name"), 240),
+                "key": key,
+                "url": source,
+                "embed": "https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=" + urllib.parse.quote(key, safe=""),
+                "published": date_only(track.get("created_time", "")),
+            })
+        next_url = page.get("paging", {}).get("next")
+    return tracks
+
+def normalise_title(value):
+    return re.sub(r"[^a-z0-9]+", "", (value or "").casefold())
+
+def mixcloud_match_title(value, other):
+    a, b = normalise_title(value), normalise_title(other)
+    if not a or not b:
+        return 0
+    if a == b:
+        return 1.0
+    return SequenceMatcher(None, a, b).ratio()
+
+def merge_mixcloud(episodes, reports):
+    """Enrich old podcast entries with legal publisher embeds; keep originals.
+
+    Exact/near-exact titles match existing RSS; separate Mixcloud tracks which
+    lack matching RSS entries are still independently searchable, with no media
+    copied. We do not infer dead URL slugs or claim a sound file was restored.
+    """
+    try:
+        tracks = mixcloud_public_catalogue()
+    except Exception as exc:
+        print("MIXCLOUD LOOKUP ERROR", type(exc).__name__, str(exc)[:160], file=sys.stderr)
+        return {"catalogueCount": 0, "matched": 0, "extra": 0, "errors": [str(exc)[:160]]}
+    historic = [e for e in episodes if e["showId"] == "293630407"]
+    matched = 0
+    extras = 0
+    used = set()
+    for track in tracks:
+        best = None
+        best_score = 0
+        for e in historic:
+            if e["id"] in used:
+                continue
+            score = mixcloud_match_title(track["name"], e["title"])
+            if score > best_score:
+                best = e
+                best_score = score
+        if best is not None and best_score >= 0.82:
+            used.add(best["id"])
+            best["mode"] = "mixcloud"
+            best["provider"] = "mixcloud"
+            best["url"] = track["url"]
+            best["embed"] = track["embed"]
+            best["streamableAtBuild"] = True
+            best["note"] = best["note"].replace(
+                "Archive audio host was unavailable during the last source check; recording is listed for discovery, not marked playable.", ""
+            ).strip()
+            matched += 1
+        else:
+            ident = sha256(track["key"].encode("utf-8")).hexdigest()[:20]
+            episodes.append({
+                "id": "cornerstone:episode:293630407:mixcloud:" + ident,
+                "title": track["name"], "show": "Cornerstone Community Podcast · Mixcloud",
+                "tags": ["cornerstone", "discipleship", "muster", "teaching"],
+                "duration": "", "provider": "mixcloud", "mode": "mixcloud",
+                "url": track["url"], "embed": track["embed"],
+                "date": track["published"], "note": "Publisher-hosted Mixcloud player; no audio rehosted.",
+                "showId": "293630407", "streamableAtBuild": True
+            })
+            extras += 1
+    for report in reports:
+        if str(report["showId"]) == "293630407":
+            items = [e for e in episodes if e["showId"] == "293630407"]
+            report["mixcloudMatched"] = matched
+            report["mixcloudAdditional"] = extras
+            report["streamableAtBuild"] = sum(e["streamableAtBuild"] for e in items)
+            report["unavailableAtBuild"] = len(items) - report["streamableAtBuild"]
+    print("MIXCLOUD RECOVERED",len(tracks),"matched",matched,"additional",extras, file=sys.stderr)
+    return {"catalogueCount": len(tracks), "matched": matched, "extra": extras, "errors":[]}
+
 def build():
     episodes = []
     reports = []
@@ -227,7 +327,9 @@ def build():
         items = [e for e in episodes if e["showId"] == str(show["showId"])]
         show["streamableAtBuild"] = sum(e["streamableAtBuild"] for e in items)
         show["unavailableAtBuild"] = len(items) - show["streamableAtBuild"]
-    return {"version": 1, "generatedAt": datetime.now(timezone.utc).isoformat(), "shows": reports, "episodes": episodes}
+    mixcloud = merge_mixcloud(episodes, reports)
+    episodes.sort(key=lambda x: (x["mode"] == "unavailable", x.get("date", ""), x["title"]))
+    return {"version": 1, "generatedAt": datetime.now(timezone.utc).isoformat(), "shows": reports, "episodes": episodes, "mixcloud": mixcloud}
 
 def main():
     p = argparse.ArgumentParser()

@@ -82,15 +82,32 @@ test('each compatible saints resource links back to the same catalogue',()=>{
 test('Cornerstone catalogue adds 115 individual audio/archival entries and never fakes inaccessible streams',()=>{
   assert.match(page,/async function loadCornerstoneEpisodes\(\)/);
   assert.match(page,/cornerstone-episodes\.json/);
-  assert.match(page,/loaded\.filter\(e=>e\.mode==='audio'\)\.length/);
+  assert.match(page,/loaded\.filter\(e=>e\.mode==='audio'\|\|e\.mode==='mixcloud'\)\.length/);
   assert.match(page,/loaded\.filter\(e=>e\.mode==='unavailable'\)\.length/);
   assert.match(page,/e\.mode==='external'\|\|e\.mode==='unavailable'/);
   assert.match(page,/audio\.addEventListener\('error'/);
-  assert.match(page,/audio host could not be reached/);
+  assert.match(page,/original audio host could not be reached/);
   assert.match(page,/catalogue\.splice\(0,catalogue\.length/);
   assert.match(page,/data\.episodes\.slice\(0,500\)/);
   assert.match(page,/e\.mode==='audio'/);
   assert.match(page,/loadCornerstoneEpisodes\(\)/);
   assert.match(page,/preload='none'/);
   assert.match(page,/https:/);
+});
+
+test('public Mixcloud widget is deliberately opt-in, private Drive URLs never ship with the page',()=>{
+  assert.match(page,/\['unavailable','audio','mixcloud'\]\.includes\(value\.mode\)/);
+  assert.match(page,/audioLink\.hostname!=='www\.mixcloud\.com'/);
+  assert.match(page,/audioLink\.pathname!=='\/widget\/iframe\/'/);
+  assert.match(page,/frame\.src=e\.embed/);
+  assert.match(page,/e\.mode==='mixcloud'/);
+  assert.match(page,/e\.mode==='drive'/);
+  assert.match(page,/e\.mode==='local'/);
+  assert.match(page,/id="driveCatalogueFile"/);
+  assert.match(page,/id="privateAudioFiles"/);
+  assert.match(page,/function privateRow\(x\)/);
+  assert.match(page,/URL\.createObjectURL\(file\)/);
+  assert.match(page,/URL\.revokeObjectURL\(entry\.embed\)/);
+  assert.match(page,/localStorage\.removeItem\(PRIVATE_STORE\)/);
+  assert.doesNotMatch(page,/1oXflMRKK3_2LKo-MnrCiQ-1DBsy1uP_y/,'No private Drive file IDs may be published in the static HTML');
 });
