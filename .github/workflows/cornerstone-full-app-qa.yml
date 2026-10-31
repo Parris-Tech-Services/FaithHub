@@ -1,0 +1,36 @@
+name: Cornerstone full application acceptance diagnostics
+on:
+  push:
+    branches: [feat/cornerstone-underlying-audio-recovery-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  app-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: All existing FaithHub Node static tests
+        run: node --test scripts/*.test.mjs
+      - name: Install Playwright without changing committed manifests
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Psalms and main mobile/desktop journey
+        run: node scripts/psalms-browser.mjs
+      - name: Podcast player mobile/desktop journey (real browser, fixture source metadata)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/faithhub-qa.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          node scripts/podcast-unified-browser.mjs
+      - name: Production Vite build
+        run: npm run build
+      - name: Verify generated application resources
+        run: |
+          test -f dist/index.html
+          test -f dist/psalms.html
