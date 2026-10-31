@@ -62,7 +62,7 @@ try{
   await page.locator('#filter').selectOption('cornerstone');
   assert.equal(await page.locator('#grid article').count(),115);
   assert.equal(await page.locator('#grid [data-select]').count(),19,'19 source streams should be selectable in-page');
-  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 Cornerstone recordings: 19/);
+  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 public catalogue entries: 19 direct audio sources/);
   await page.locator('#search').fill('Paul Roe');
   assert.equal(await page.locator('#grid article').count(),1);
   await page.locator('#grid [data-select]').click();
@@ -105,7 +105,7 @@ try{
   await dp.locator('#filter').selectOption('prayer');
   assert.ok(await dp.locator('#grid article').count()>=5);
   await desktop.close();
-  console.log('PASS: unified 145-item catalogue (30 original+115 Cornerstone, 19 streamable), Apple/Spotify/publisher player selection, external fallback, search, mobile, desktop, deep links and legacy migration.');
+  console.log('PASS: unified 145-item catalogue (30 original+115 Cornerstone, 19 source-reachable), Apple/Spotify/publisher player selection, external fallback, search, mobile, desktop, deep links and legacy migration.');
 } finally{
   await browser.close();
 }
