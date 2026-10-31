@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {assertOnlyApprovedRemoteScripts} from "./assert-allowed-analytics.mjs";
 import {readFileSync} from "node:fs";
 import {spawnSync} from "node:child_process";
 import test from "node:test";
@@ -40,7 +41,7 @@ test("Scripture Atlas page contains linked, accessible controls and no external 
  }
  assert.ok(html.includes('aria-live="polite"'));
  assert.ok(html.includes('type="module" src="assets/scripture-atlas.mjs"'));
- assert.ok(!/<script[^>]+src=["']https?:\/\//i.test(html),"no remote scripts");
+ assertOnlyApprovedRemoteScripts(html);
  assert.ok(css.includes("@media(max-width:560px)"));
 });
 test("Journal and personal marks persist only through explicit user actions",()=>{
