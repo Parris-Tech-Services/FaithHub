@@ -136,7 +136,7 @@ def rss_entries(show_id, label, root):
 def apple_entries(show_id, label, results):
     out = []
     for item in results:
-        if item.get("wrapperType") != "track" or item.get("kind") != "podcast-episode":
+        if item.get("wrapperType") not in ("podcastEpisode", "track") or item.get("kind") != "podcast-episode":
             continue
         if str(item.get("collectionId", "")) not in ("", str(show_id)):
             continue
@@ -162,7 +162,7 @@ def build():
         errors = []
         try:
             details = request_json(f"https://itunes.apple.com/lookup?id={show_id}&country=au")
-            meta = next((r for r in details.get("results", []) if r.get("collectionType") == "Podcast"), None)
+            meta = next((r for r in details.get("results", []) if r.get("kind") == "podcast"), None)
             if meta:
                 feed_url = meta.get("feedUrl")
         except Exception as exc:
