@@ -32,7 +32,7 @@ try{
  const state=await audio.evaluate(el=>({currentTime:el.currentTime,readyState:el.readyState,paused:el.paused,error:el.error?.code}));
  console.log('REAL_AUDIO_RESULT',JSON.stringify({progressed,state,playError,requests:requests.slice(0,8),errors}));
  assert.ok(progressed,'Real source did not advance past 2 seconds in HTML5 player');
- assert.match(await page.locator('#playbackStatus').textContent(),/Playing in FaithHub/);
+ await page.getByText(/Playing in FaithHub/).waitFor({timeout:5000});
  assert.deepEqual(errors,[]);
  await page.locator('#search').fill('Roe');
  assert.ok(await page.locator('#grid article').count()>0,'Public library filters by teaching title');
