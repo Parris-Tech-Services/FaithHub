@@ -10,6 +10,19 @@ spec.loader.exec_module(mod)
 catalogue=mod.build()
 episodes=catalogue["episodes"]
 print("PUBLIC_CATALOGUE",len(episodes),"Mixcloud",catalogue["mixcloud"])
+# Produce public RSS filename inventory for private in-memory matching against Drive.
+try:
+    feed=mod.request_rss("https://feeds.feedburner.com/CornerstoneCommunityPodcast")
+    for item in feed.findall("./channel/item"):
+        enclosure=item.find("enclosure")
+        if enclosure is None: continue
+        url=enclosure.attrib.get("url","")
+        title=item.findtext("title","").strip()
+        path=urllib.parse.urlsplit(url).path
+        size=enclosure.attrib.get("length","")
+        print("RSS_PUBLIC_FILE",json.dumps({"title":title,"basename":urllib.parse.unquote(path.split("/")[-1]),"bytes":size},ensure_ascii=False))
+except Exception as exc:
+    print("RSS_PUBLIC_FILE_ERROR",type(exc).__name__,str(exc)[:150])
 samples=[]
 for phrase in ("Everything Counts","The Heart of the Father","Muster 2018 - Andrew Vincent"):
     matched=[x for x in episodes if phrase.lower() in x["title"].lower()]
