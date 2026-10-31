@@ -9,7 +9,7 @@ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,
 const results=[];
 try{
  await page.goto('http://127.0.0.1:8765/podcasts.html?topic=cornerstone',{waitUntil:'domcontentloaded',timeout:20000});
- await page.getByText(/117 Cornerstone recordings/).waitFor({timeout:30000});
+ await page.getByText(/117 public catalogue entries/).waitFor({timeout:30000});
  for(const e of items){
    try{
      await page.locator('#filter').selectOption('cornerstone');
