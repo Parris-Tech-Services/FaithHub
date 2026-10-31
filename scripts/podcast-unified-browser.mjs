@@ -54,6 +54,11 @@ try{
   assert.equal(await page.locator('#grid article').count(),1);
   assert.equal(await page.locator('#grid article a').getAttribute('href'),'https://prayasyougo.org/');
   await page.locator('#search').fill('');
+  await page.locator('#filter').selectOption('cornerstone-audio');
+  assert.equal(await page.locator('#grid article').count(),19);
+  await page.locator('#filter').selectOption('cornerstone-archive');
+  assert.equal(await page.locator('#grid article').count(),96);
+  assert.equal(await page.locator('#grid [data-select]').count(),0);
   await page.locator('#filter').selectOption('cornerstone');
   assert.equal(await page.locator('#grid article').count(),115);
   assert.equal(await page.locator('#grid [data-select]').count(),19,'19 source streams should be selectable in-page');
