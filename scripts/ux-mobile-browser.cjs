@@ -50,6 +50,7 @@ async function main(){
    assert.ok(await genesis.isVisible(),width+"px Genesis is hidden");
    await genesis.scrollIntoViewIfNeeded();
    const hit=await genesis.evaluate(el=>{const r=el.getBoundingClientRect();const t=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return t===el||el.contains(t)});
+   if(!hit){const debug=await genesis.evaluate(el=>{const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,other=document.elementFromPoint(cx,cy);return {rect:{x:r.x,y:r.y,width:r.width,height:r.height},viewport:{width:innerWidth,height:innerHeight},hit:other?.outerHTML?.slice(0,440),parent:el.parentElement?.outerHTML?.slice(0,350)}});console.log('GENESIS_HIT_DEBUG',width,JSON.stringify(debug));}
    assert.ok(hit,width+"px Genesis link covered");
    await page.locator('[data-tab="sabbath"]').click();
    assert.equal(await page.locator('[data-tab="sabbath"]').getAttribute("aria-selected"),"true");

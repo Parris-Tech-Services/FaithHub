@@ -77,8 +77,8 @@ try {
         // and exposes the correct on-demand provider players on mobile.
         const pod=await page.goto(BASE+'podcasts.html',{waitUntil:'domcontentloaded',timeout:30000});
         assert.equal(pod?.status(),200,'Public unified podcast catalogue missing');
-        await page.getByText('33 of 33 recordings shown').waitFor({timeout:10000});
-        assert.equal(await page.locator('#grid article').count(),33);
+        await page.getByText('145 of 145 recordings shown').waitFor({timeout:15000});
+        assert.equal(await page.locator('#grid article').count(),145);
         assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,
           'Third-party embeds must not preload before listener chooses an episode');
         await page.locator('#search').fill('Augustine');
@@ -88,9 +88,22 @@ try {
           /embed\.podcasts\.apple\.com\/au\/podcast\/episode\/id1597828386/);
         await page.locator('#filter').selectOption('audio');
         await page.locator('#search').fill('');
-        await page.locator('#grid [data-select]').click();
+        await page.locator('#grid [data-select]').first().click();
         assert.equal(await page.locator('#playerHost iframe').count(),0);
         assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
+        await page.locator('#filter').selectOption('cornerstone');
+        assert.equal(await page.locator('#grid article').count(),115,'All 115 Cornerstone episode listings must appear');
+        const status=await page.locator('#cornerstoneFeedStatus').textContent();
+        assert.match(status,/115 Cornerstone episodes catalogued/);
+        assert.match(status,/19 with audio streams reachable/);
+        assert.equal(await page.locator('#grid [data-select]').count(),19,'Do not show a fake play button on 96 unavailable historic recordings');
+        await page.locator('#search').fill('Character of Jesus - 25th June 2022');
+        assert.equal(await page.locator('#grid article').count(),1);
+        await page.locator('#grid [data-select]').click();
+        assert.match(await page.locator('#playerHost audio').getAttribute('src'),/^https:\/\/anchor\.fm\//);
+        await page.locator('#search').fill('Muster 2018 - Andrew Vincent - First Things First');
+        assert.equal(await page.locator('#grid article').count(),1);
+        assert.equal(await page.locator('#grid [data-select]').count(),0,'Dead CMS audio must not be offered as playable');
         const podWidth=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
         assert.ok(podWidth.scroll<=podWidth.width+1,'Public podcast page has mobile overflow: '+JSON.stringify(podWidth));
       }

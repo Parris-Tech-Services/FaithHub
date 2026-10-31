@@ -1,0 +1,41 @@
+name: Cornerstone full-podcast player acceptance
+on:
+  push:
+    branches: [feat/cornerstone-full-podcast-feeds-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  feed-player:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify podcast and Cornerstone source tests
+        run: node --test scripts/podcast-unified.test.mjs scripts/cornerstone-teachings.test.mjs
+      - name: Verify all published episode metadata and distinguish unavailable archive
+        run: |
+          python3 scripts/build-cornerstone-catalogue.py --output /tmp/cornerstone-episodes.json --require-at-least 115
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/cornerstone-episodes.json'))
+          assert len(d['episodes']) == 115, len(d['episodes'])
+          s={str(x['showId']):x for x in d['shows']}
+          assert all(s[k]['playableEnclosuresFound']==v for k,v in [('293630407',96),('1631726711',18),('1631658757',1)])
+          assert sum(e['mode']=='unavailable' for e in d['episodes']) == 96
+          assert sum(e['mode']=='audio' for e in d['episodes']) == 19
+          print('PASS: 115 episodes catalogued; 19 source streams playable, 96 historical archive unavailable')
+          PY
+      - name: Install temporary browser dependency
+        run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Install Chromium for 390px and desktop checks
+        run: npx playwright install --with-deps chromium
+      - name: Test podcast search, native audio, archived sources, bookmarks and existing providers
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/faithhub-feed-test.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          node scripts/podcast-unified-browser.mjs

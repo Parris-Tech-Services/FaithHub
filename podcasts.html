@@ -68,7 +68,7 @@
   <section class="player" aria-label="Saints on prayer">
     <div class="player-kicker">Featured prayer teaching</div>
     <h2>Learn to pray with Jesus and the saints</h2>
-    <p>Find the Teresa and Augustine episodes, a recording of Teresa’s writing, and guided prayer alongside the existing Spotify library. Apple Podcasts and publisher-hosted audio play here when available; others open at the source.</p>
+    <p>Find historic Christian prayer teaching and the complete public Cornerstone podcast collections alongside the existing Spotify library. Select a Cornerstone episode to stream its original audio here, without leaving FaithHub.</p>
     <div class="actions"><a class="btn primary" href="saints-prayer.html">Prayer guide and primary sources</a><a class="btn" href="#catalogue" id="showPrayer">Browse prayer recordings</a></div>
   </section>
 
@@ -82,13 +82,13 @@
       <button id="randomBtn" class="play-btn primary" type="button">Another recording</button>
       <a id="publisherLink" class="open-link" href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Open with publisher</a>
     </div>
-    <p class="note">Selecting a recording loads an official Apple/Spotify player or the publisher’s own audio. Press play inside the player. Streaming is handled by the external provider, whose privacy terms apply. Provider links always remain available if playback is blocked.</p>
+    <p class="note">Select an episode to play its original publisher-hosted recording here. Audio is not copied to FaithHub. Some hosts or browsers may block playback; the original source link remains available in that case. Nothing loads until you select a recording.</p>
   </section>
 
   <section id="catalogue" aria-label="Search the podcast catalogue">
-    <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Teresa, Augustine, prayer or Sabbath" /></div>
-    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
-    <p id="resultCount" role="status"></p>
+    <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Paul Roe, Laurie, Romans, Joy, Teresa or Sabbath" /></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — playable here</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <p id="resultCount" role="status"></p><p id="cornerstoneFeedStatus" class="status" role="status" aria-live="polite">Loading Cornerstone episodes from the published podcast feeds…</p>
   </section>
   <section id="grid" class="grid"></section>
   <div id="empty" class="empty">No podcasts match that search.</div>
@@ -154,6 +154,7 @@ const playerHost=document.getElementById('playerHost');
 const playbackStatus=document.getElementById('playbackStatus');
 const publisherLink=document.getElementById('publisherLink');
 const randomBtn=document.getElementById('randomBtn');
+const cornerstoneFeedStatus=document.getElementById('cornerstoneFeedStatus');
 const requestedEpisode=new URLSearchParams(window.location.search).get('episode');
 const requestedTopic=new URLSearchParams(window.location.search).get('topic');
 let current=requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode)?requestedEpisode:loadCurrent();
@@ -171,14 +172,14 @@ function loadCurrent(){
 function saveCurrent(){
   try{localStorage.setItem(STORAGE,current)}catch{}
 }
-function categoryLabel(e){return {spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]}
+function categoryLabel(e){return e.mode==='unavailable'?'Cornerstone archive · audio unavailable':e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
 function showSelected(id,{scroll=false,load=false}={}){
   const e=catalogue.find(row=>row.id===id);
   if(!e)return;
   current=e.id;
   saveCurrent();
   playerTitle.textContent=e.title;
-  playerMeta.textContent=e.show+(e.duration?' · '+e.duration:'')+' · '+categoryLabel(e);
+  playerMeta.textContent=e.show+(e.date?' · '+e.date:'')+(e.duration?' · '+e.duration:'')+' · '+categoryLabel(e);
   publisherLink.href=e.url;
   publisherLink.textContent='Open at '+categoryLabel(e);
   playerHost.replaceChildren();
@@ -188,6 +189,9 @@ function showSelected(id,{scroll=false,load=false}={}){
     p.textContent='Selected: '+e.title+'. Choose “Listen here” below to load the external player.';
     playerHost.append(p);
     playbackStatus.textContent='No audio has loaded.';
+  }else if(e.mode==='unavailable'){
+    const p=document.createElement('p');p.className='player-placeholder';p.textContent='This historic episode is catalogued, but its original audio host could not be reached at the latest source check. No working audio file is available here.';playerHost.append(p);
+    playbackStatus.textContent='Archived entry only; playback is unavailable until the original source is restored.';
   }else if(e.mode==='external'){
     const p=document.createElement('p');
     p.className='player-placeholder';
@@ -200,8 +204,11 @@ function showSelected(id,{scroll=false,load=false}={}){
     audio.preload='none';
     audio.setAttribute('aria-label','Audio: '+e.title);
     audio.src=e.embed;
+    audio.addEventListener('error', () => {
+      playbackStatus.textContent='This recording could not play in this browser. The source link remains available; this is a restriction of the original audio host or a missing media file.';
+    });
     playerHost.append(audio);
-    playbackStatus.textContent='Publisher-hosted audio player ready. Press play to listen.';
+    playbackStatus.textContent='Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
   }else{
     const frame=document.createElement('iframe');
     frame.title=categoryLabel(e)+' player: '+e.title;
@@ -224,7 +231,7 @@ function pickDifferent(){
 function matches(e){
   const q=search.value.trim().toLocaleLowerCase();
   const selected=filter.value;
-  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||selected===e.provider;
+  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||(selected==='cornerstone-audio'&&e.tags.includes('cornerstone')&&e.mode==='audio')||(selected==='cornerstone-archive'&&e.tags.includes('cornerstone')&&e.mode==='unavailable')||selected===e.provider;
   return inGroup&&[e.title,e.show,e.note,e.duration,categoryLabel(e)].concat(e.tags).join(' ').toLocaleLowerCase().includes(q);
 }
 function render(){
@@ -232,9 +239,9 @@ function render(){
   resultCount.textContent=rows.length+' of '+catalogue.length+' recordings shown';
   grid.innerHTML=rows.map(function(e){
     const isSelected=e.id===current;
-    const button=e.mode==='external'?'':'<button class="play-btn primary" type="button" data-select="'+esc(e.id)+'">Listen here</button>';
-    return '<article class="card'+(isSelected?' playing':'')+'"><p class="mode">'+esc(categoryLabel(e))+(e.mode==='external'?' · external only':' · on-page player')+'</p>'+
-      '<h2>'+esc(e.title)+'</h2><div class="meta">'+esc(e.show)+(e.duration?' · '+esc(e.duration):'')+'</div>'+
+    const button=e.mode==='external'||e.mode==='unavailable'?'':'<button class="play-btn primary" type="button" data-select="'+esc(e.id)+'">Listen here</button>';
+    return '<article class="card'+(isSelected?' playing':'')+'"><p class="mode">'+esc(categoryLabel(e))+(e.mode==='external'||e.mode==='unavailable'?' · source link only':' · on-page player')+'</p>'+
+      '<h2>'+esc(e.title)+'</h2><div class="meta">'+esc(e.show)+(e.date?' · '+esc(e.date):'')+(e.duration?' · '+esc(e.duration):'')+'</div>'+
       (e.note?'<p class="note">'+esc(e.note)+'</p>':'')+
       '<div class="tags">'+e.tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>'+
       '<div class="card-actions">'+button+'<a class="open-link" href="'+esc(e.url)+'" target="_blank" rel="noopener noreferrer">Open at '+esc(categoryLabel(e))+'</a></div></article>';
@@ -254,6 +261,62 @@ document.getElementById('showPrayer').addEventListener('click',()=>{
 if(requestedTopic==='cornerstone')filter.value='cornerstone';
 else if(requestedEpisode&&catalogue.some(e=>e.id===requestedEpisode))filter.value=catalogue.find(e=>e.id===requestedEpisode)?.tags.includes('cornerstone')?'cornerstone':'prayer';
 showSelected(current);
+
+// Fetch the generated metadata only. Audio streams directly from the publisher
+// only when the user selects Listen here; do not preload any audio.
+async function loadCornerstoneEpisodes(){
+  try {
+    const response=await fetch('./cornerstone-episodes.json',{cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const data=await response.json();
+    if(data.version!==1||!Array.isArray(data.episodes)||!Array.isArray(data.shows))throw new Error('Unexpected feed data');
+    const allowedShowIds=new Set(['293630407','1631726711','1631658757']);
+    const foundIds=new Set();
+    const loaded=[];
+    for(const value of data.episodes.slice(0,500)){
+      if(!value||!allowedShowIds.has(String(value.showId))||typeof value.id!=='string'||!value.id.startsWith('cornerstone:episode:')||foundIds.has(value.id))continue;
+      if(typeof value.title!=='string'||typeof value.show!=='string'||!Array.isArray(value.tags)||!value.tags.includes('cornerstone'))continue;
+      if(typeof value.url!=='string'||typeof value.embed!=='string')continue;
+      const mode=value.mode==='unavailable'?'unavailable':value.mode==='audio'?'audio':null;
+      if(!mode)continue;
+      let audioLink,sourceLink;
+      try{audioLink=new URL(value.embed);sourceLink=new URL(value.url)}catch{continue}
+      if(audioLink.protocol!=='https:'||sourceLink.protocol!=='https:'||!audioLink.hostname||!sourceLink.hostname)continue;
+      foundIds.add(value.id);
+      loaded.push({
+        id:value.id,title:value.title.slice(0,240),show:value.show.slice(0,170),
+        tags:['cornerstone',...value.tags.filter(x=>typeof x==='string'&&x!=='cornerstone').slice(0,10)],
+        duration:typeof value.duration==='string'?value.duration.slice(0,40):'',
+        provider:mode==='audio'?'audio':'external',mode,url:sourceLink.href,embed:audioLink.href,
+        date:typeof value.date==='string'?value.date.slice(0,20):'',
+        note:typeof value.note==='string'?value.note.slice(0,350):'',
+        showId:String(value.showId)
+      });
+    }
+    loaded.sort((a,b)=>(a.mode==='audio'?0:1)-(b.mode==='audio'?0:1)||b.date.localeCompare(a.date));
+    const present=new Set(loaded.map(e=>e.showId));
+    const legacyIds={'cornerstone:original':'293630407','cornerstone:bendigo':'1631726711','cornerstone:paul-roe':'1631658757'};
+    const remaining=cornerstone.filter(e=>!present.has(legacyIds[e.id]));
+    const spotify=catalogue.filter(e=>e.provider==='spotify');
+    catalogue.splice(0,catalogue.length,...featured,...remaining,...loaded,...spotify);
+    if(!catalogue.some(e=>e.id===current)){
+      current=loaded[0]?.id||featured[0].id;
+      showSelected(current);
+    }
+    render();
+    const total=loaded.length;
+    const playable=loaded.filter(e=>e.mode==='audio').length;
+    const archived=loaded.filter(e=>e.mode==='unavailable').length;
+    const published=data.shows.reduce((n,s)=>n+(Number(s.expectedByPublisher)||0),0);
+    const missing=data.shows.filter(s=>!present.has(String(s.showId))).map(s=>s.title);
+    cornerstoneFeedStatus.textContent=total
+      ?total+' Cornerstone episodes catalogued: '+playable+' with audio streams reachable at the last check, '+archived+' historic listings with unavailable audio'+(published>total?' ('+(published-total)+' not recovered)':'')+'.'+(missing.length?' Missing collection: '+missing.join(', ')+'.':'')
+      :'No Cornerstone audio addresses could be retrieved at build time. Use the original catalogue links.';
+  }catch(error){
+    cornerstoneFeedStatus.textContent='Cornerstone episode feed could not load. The three original catalogue links remain available. '+(error.message||'');
+  }
+}
+loadCornerstoneEpisodes();
 
 </script>
 </body>
