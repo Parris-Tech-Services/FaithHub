@@ -77,8 +77,19 @@ try {
         // and exposes the correct on-demand provider players on mobile.
         const pod=await page.goto(BASE+'podcasts.html',{waitUntil:'domcontentloaded',timeout:30000});
         assert.equal(pod?.status(),200,'Public unified podcast catalogue missing');
-        await page.getByText('145 of 145 recordings shown').waitFor({timeout:15000});
-        assert.equal(await page.locator('#grid article').count(),145);
+        const feedResponse=await page.request.get(BASE+'cornerstone-episodes.json');
+        assert.equal(feedResponse.status(),200);
+        const feed=await feedResponse.json();
+        assert.equal(feed.version,1);
+        const liveMixcloud=feed.episodes.filter(e=>e.mode==='mixcloud');
+        const liveUnplayable=feed.episodes.filter(e=>e.mode==='unavailable');
+        const liveAudio=feed.episodes.filter(e=>e.mode==='audio');
+        assert.ok(liveMixcloud.length>=90,'Publisher-hosted Mixcloud source recovery unexpectedly missing');
+        assert.ok(liveUnplayable.length<=6,'Too many historical podcast sources remain unavailable');
+        assert.ok(liveAudio.length>=19,'Working original audio feeds missing');
+        const expectedItems=30+feed.episodes.length;
+        await page.waitForFunction(n=>document.querySelectorAll('#grid article').length===n,expectedItems,{timeout:16000});
+        assert.equal(await page.locator('#grid article').count(),expectedItems);
         assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,
           'Third-party embeds must not preload before listener chooses an episode');
         await page.locator('#search').fill('Augustine');
@@ -92,18 +103,20 @@ try {
         assert.equal(await page.locator('#playerHost iframe').count(),0);
         assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
         await page.locator('#filter').selectOption('cornerstone');
-        assert.equal(await page.locator('#grid article').count(),115,'All 115 Cornerstone episode listings must appear');
+        assert.equal(await page.locator('#grid article').count(),feed.episodes.length,'All imported Cornerstone recordings must appear');
         const status=await page.locator('#cornerstoneFeedStatus').textContent();
-        assert.match(status,/115 Cornerstone episodes catalogued/);
-        assert.match(status,/19 with audio streams reachable/);
-        assert.equal(await page.locator('#grid [data-select]').count(),19,'Do not show a fake play button on 96 unavailable historic recordings');
+        assert.match(status,/Cornerstone recordings:/);
+        assert.equal(await page.locator('#grid [data-select]').count(),liveMixcloud.length+liveAudio.length);
         await page.locator('#search').fill('Character of Jesus - 25th June 2022');
         assert.equal(await page.locator('#grid article').count(),1);
         await page.locator('#grid [data-select]').click();
         assert.match(await page.locator('#playerHost audio').getAttribute('src'),/^https:\/\/anchor\.fm\//);
         await page.locator('#search').fill('Muster 2018 - Andrew Vincent - First Things First');
         assert.equal(await page.locator('#grid article').count(),1);
-        assert.equal(await page.locator('#grid [data-select]').count(),0,'Dead CMS audio must not be offered as playable');
+        assert.equal(await page.locator('#grid [data-select]').count(),1,'Recovered 2018 Muster talk must now offer in-page playback');
+        await page.locator('#grid [data-select]').click();
+        const frameUrl=await page.locator('#playerHost iframe').getAttribute('src');
+        assert.match(frameUrl,/^https:\/\/www\.mixcloud\.com\/widget\/iframe\/\?/,'Official Mixcloud player must load in FaithHub');
         const podWidth=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth}));
         assert.ok(podWidth.scroll<=podWidth.width+1,'Public podcast page has mobile overflow: '+JSON.stringify(podWidth));
       }
