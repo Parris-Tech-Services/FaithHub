@@ -6,7 +6,7 @@ try{
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  const errors=[],requests=[];
  page.on('pageerror',e=>errors.push(e.message));
- page.on('response',r=>{if(/drive\.usercontent\.google\.com/.test(r.url()))requests.push({status:r.status(),type:r.headers()['content-type'],url:r.url().slice(0,120)})});
+ page.on('response',r=>{if(/faithhub-cornerstone-audio\.parris-neathaustralia\.workers\.dev/.test(r.url()))requests.push({status:r.status(),type:r.headers()['content-type'],url:r.url().slice(0,120)})});
  await page.route('**/cornerstone-episodes.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:1,shows:[],episodes:[]})}));
  const response=await page.goto(base+'/podcasts.html?topic=cornerstone',{waitUntil:'domcontentloaded',timeout:30000});
  assert.equal(response.status(),200);
@@ -18,7 +18,7 @@ try{
  await page.locator('#grid article').getByRole('button',{name:'Listen here'}).click();
  const audio=page.locator('#playerHost audio');
  await audio.waitFor({timeout:10000});
- assert.match(await audio.getAttribute('src'),/drive\.usercontent\.google\.com\/download\?/);
+ assert.match(await audio.getAttribute('src'),/faithhub-cornerstone-audio\.parris-neathaustralia\.workers\.dev\/download\?/);
  assert.equal(await page.locator('#playerHost iframe').count(),0,'All public audio should be native HTML5, not iframe previews');
  // Test real MP3 bytes decoding, not just loading a player. Chromium is allowed autoplay
  // in ephemeral CI; actual FaithHub listeners click native audio controls.
