@@ -244,6 +244,12 @@ function showSelected(id,{scroll=false,load=false}={}){
     audio.addEventListener('error', () => {
       playbackStatus.textContent='This recording could not play in this browser. The source link remains available; this is a restriction of the original audio host or a missing media file.';
     });
+    audio.addEventListener('timeupdate', () => {
+      if(!playerHost.contains(audio)||audio.paused||audio.currentTime<5)return;
+      playbackStatus.textContent='Playback verified in this browser: '+Math.floor(audio.currentTime)+' seconds played'+(e.mode==='local'?' from your private on-device recording.':' from the original audio host.');
+    });
+    audio.addEventListener('waiting',()=>{if(playerHost.contains(audio))playbackStatus.textContent='Audio is buffering. Playback is not yet confirmed.';});
+    audio.addEventListener('stalled',()=>{if(playerHost.contains(audio))playbackStatus.textContent='Audio source stalled. Try another recording or your original MP3.';});
     playerHost.append(audio);
     playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
   }else{
@@ -395,7 +401,8 @@ async function loadCornerstoneEpisodes(){
         provider:mode==='audio'?'audio':mode==='mixcloud'?'mixcloud':'external',mode,url:sourceLink.href,embed:audioLink.href,
         date:typeof value.date==='string'?value.date.slice(0,20):'',
         note:typeof value.note==='string'?value.note.slice(0,350):'',
-        showId:String(value.showId)
+        showId:String(value.showId),
+        verificationStatus:['VERIFIED_PLAYABLE','SOURCE_REACHABLE','EMBED_ONLY','PLAYBACK_FAILED','PRIVATE_AUTH_REQUIRED','MISSING'].includes(value.verificationStatus)?value.verificationStatus:'EMBED_ONLY'
       });
     }
     loaded.sort((a,b)=>(a.mode==='unavailable'?1:0)-(b.mode==='unavailable'?1:0)||b.date.localeCompare(a.date));
@@ -410,13 +417,14 @@ async function loadCornerstoneEpisodes(){
     }
     render();
     const total=loaded.length;
-    const playable=loaded.filter(e=>e.mode==='audio'||e.mode==='mixcloud').length;
+    const direct=loaded.filter(e=>e.mode==='audio').length;
     const mixcloud=loaded.filter(e=>e.mode==='mixcloud').length;
+    const failed=loaded.filter(e=>e.verificationStatus==='PLAYBACK_FAILED').length;
     const archived=loaded.filter(e=>e.mode==='unavailable').length;
     const published=data.shows.reduce((n,s)=>n+(Number(s.expectedByPublisher)||0),0);
     const missing=data.shows.filter(s=>!present.has(String(s.showId))).map(s=>s.title);
     cornerstoneFeedStatus.textContent=total
-      ?total+' Cornerstone recordings: '+playable+' with hosted audio or official embedded players ('+mixcloud+' Mixcloud), '+archived+' old listing(s) without a recovered source. Original publication catalogues: '+published+' episodes.'+(missing.length?' Missing collection: '+missing.join(', ')+'.':'')
+      ?total+' public catalogue entries: '+direct+' direct audio sources, '+mixcloud+' Mixcloud embeds (playability not verified; '+failed+' failed automated playback), and '+archived+' unavailable old-feed listing(s). Entries may include duplicate recordings; this is not a count of verified working audio.'+(missing.length?' Missing collection: '+missing.join(', ')+'.':'')
       :'No Cornerstone audio addresses could be retrieved at build time. Use the original catalogue links.';
   }catch(error){
     cornerstoneFeedStatus.textContent='Cornerstone episode feed could not load. The three original catalogue links remain available. '+(error.message||'');
