@@ -86,7 +86,7 @@
 
   <section id="catalogue" aria-label="Search the podcast catalogue">
     <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Paul Roe, Laurie, Romans, Joy, Teresa or Sabbath" /></div>
-    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — playable here</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
     <p id="resultCount" role="status"></p><p id="cornerstoneFeedStatus" class="status" role="status" aria-live="polite">Loading Cornerstone episodes from the published podcast feeds…</p>
   </section>
   <section id="grid" class="grid"></section>
@@ -230,7 +230,7 @@ function pickDifferent(){
 function matches(e){
   const q=search.value.trim().toLocaleLowerCase();
   const selected=filter.value;
-  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||selected===e.provider;
+  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||(selected==='cornerstone-audio'&&e.tags.includes('cornerstone')&&e.mode==='audio')||(selected==='cornerstone-archive'&&e.tags.includes('cornerstone')&&e.mode==='unavailable')||selected===e.provider;
   return inGroup&&[e.title,e.show,e.note,e.duration,categoryLabel(e)].concat(e.tags).join(' ').toLocaleLowerCase().includes(q);
 }
 function render(){
