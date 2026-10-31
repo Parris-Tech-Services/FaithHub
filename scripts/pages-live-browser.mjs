@@ -87,7 +87,12 @@ try {
         assert.ok(liveMixcloud.length>=90,'Publisher-hosted Mixcloud source recovery unexpectedly missing');
         assert.ok(liveUnplayable.length<=6,'Too many historical podcast sources remain unavailable');
         assert.ok(liveAudio.length>=19,'Working original audio feeds missing');
-        const expectedItems=30+feed.episodes.length;
+        const pubResponse=await page.request.get(BASE+'assets/cornerstone-public-recordings.json');
+        assert.equal(pubResponse.status(),200);
+        const publicAudio=await pubResponse.json();
+        assert.equal(publicAudio.version,1);
+        assert.equal(publicAudio.entries.length,205,'All public Cornerstone MP3/M4A recordings must be deployed');
+        const expectedItems=30+feed.episodes.length+publicAudio.entries.length;
         await page.waitForFunction(n=>document.querySelectorAll('#grid article').length===n,expectedItems,{timeout:16000});
         assert.equal(await page.locator('#grid article').count(),expectedItems);
         assert.equal(await page.locator('#playerHost iframe, #playerHost audio').count(),0,
@@ -98,15 +103,24 @@ try {
         assert.match(await page.locator('#playerHost iframe').getAttribute('src'),
           /embed\.podcasts\.apple\.com\/au\/podcast\/episode\/id1597828386/);
         await page.locator('#filter').selectOption('audio');
-        await page.locator('#search').fill('');
+        await page.locator('#search').fill('The Way of Perfection');
         await page.locator('#grid [data-select]').first().click();
         assert.equal(await page.locator('#playerHost iframe').count(),0);
         assert.match(await page.locator('#playerHost audio').getAttribute('src'),/WP-Chap26\.mp3$/);
         await page.locator('#filter').selectOption('cornerstone');
-        assert.equal(await page.locator('#grid article').count(),feed.episodes.length,'All imported Cornerstone recordings must appear');
+        await page.locator('#search').fill('');
+        assert.equal(await page.locator('#grid article').count(),feed.episodes.length+publicAudio.entries.length,'All public and historical Cornerstone recordings must appear');
         const status=await page.locator('#cornerstoneFeedStatus').textContent();
         assert.match(status,/Cornerstone recordings:/);
-        assert.equal(await page.locator('#grid [data-select]').count(),liveMixcloud.length+liveAudio.length);
+        assert.equal(await page.locator('#grid [data-select]').count(),liveMixcloud.length+liveAudio.length+publicAudio.entries.length);
+        await page.locator('#filter').selectOption('cornerstone-public');
+        assert.equal(await page.locator('#grid article').count(),205);
+        await page.locator('#search').fill('Muster-2013-Session-1');
+        assert.equal(await page.locator('#grid article').count(),1);
+        await page.locator('#grid [data-select]').click();
+        assert.match(await page.locator('#playerHost audio').getAttribute('src'),/faithhub-cornerstone-audio[.]parris-neathaustralia[.]workers[.]dev[/]audio[/]/);
+        await page.locator('#filter').selectOption('cornerstone');
+        await page.locator('#search').fill('');
         await page.locator('#search').fill('Character of Jesus - 25th June 2022');
         assert.equal(await page.locator('#grid article').count(),1);
         await page.locator('#grid [data-select]').click();
