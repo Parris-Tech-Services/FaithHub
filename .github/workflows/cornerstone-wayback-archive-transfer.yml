@@ -1,0 +1,77 @@
+name: Cornerstone audio Wayback archive transfer
+on:
+  push:
+    branches: [archive/cornerstone-audio-20261031]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Recover sample archived MP3s and integrity report
+        shell: bash
+        run: |
+          python - <<'PY'
+          import requests, pathlib, json, time, urllib.parse, hashlib, re
+          out=pathlib.Path("archive");out.mkdir(exist_ok=True)
+          cdx="https://web.archive.org/cdx/search/cdx"
+          p={"url":"www.cornerstone.edu.au/*","output":"json","filter":["mimetype:audio/mpeg","statuscode:200"],"limit":"300"}
+          s=requests.Session();s.headers.update({"User-Agent":"CornerstonePreservation/1.0 (noncommercial public audio recovery)"})
+          report={"index":cdx,"download_attempts":[]}
+          try:
+            response=s.get(cdx,params=p,timeout=105)
+            print("CDX response",response.status_code,len(response.content),response.url,flush=True)
+            response.raise_for_status()
+            data=response.json();fields=data[0]
+            rows=[dict(zip(fields,r)) for r in data[1:]]
+            report["capture_count"]=len(rows)
+            seen=set();files=[]
+            for row in rows:
+              key=row.get("urlkey") or row["original"]
+              if key in seen:continue
+              seen.add(key);files.append(row)
+            report["unique_urlkeys"]=len(files)
+            files.sort(key=lambda r: ('\\_' in r["original"],r["original"]))
+            for row in files[:4]:
+              orig=row["original"]
+              safe=orig.replace('\\_','_')
+              basename=pathlib.Path(urllib.parse.urlparse(safe).path).name
+              fn=pathlib.Path("archive")/(basename or row["digest"]+".mp3")
+              u="https://web.archive.org/web/"+row["timestamp"]+"id_/"+safe
+              entry={"original":orig,"timestamp":row["timestamp"],"replay":u,"name":basename}
+              try:
+                r=s.get(u,timeout=120,stream=True)
+                entry["status"]=r.status_code;entry["content_type"]=r.headers.get("Content-Type")
+                r.raise_for_status()
+                h=hashlib.sha256();size=0
+                with fn.open("wb") as fh:
+                  for part in r.iter_content(1024*512):
+                    if part:
+                      fh.write(part);h.update(part);size+=len(part)
+                      if size>100_000_000:raise ValueError("sample over 100 MB")
+                head=fn.open("rb").read(10)
+                entry.update(size=size,sha256=h.hexdigest(),first_bytes=head.hex(),valid_mp3=(head.startswith(b"ID3") or bool(head and head[0]==255 and head[1]&224==224)))
+                if not entry["valid_mp3"] or size<8000:
+                  fn.unlink(missing_ok=True)
+                print("Audio",basename,entry["status"],size,entry["valid_mp3"],flush=True)
+              except Exception as e:
+                entry["error"]=str(e);fn.unlink(missing_ok=True)
+                print("Audio failed",basename,str(e),flush=True)
+              report["download_attempts"].append(entry)
+              time.sleep(1)
+          except Exception as e:
+            report["error"]=str(e);print("CDX error:",e,flush=True)
+          (out/"manifest.json").write_text(json.dumps(report,indent=2))
+          PY
+      - name: Upload test artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cornerstone-wayback-audio-pilot
+          path: archive/
+          compression-level: 0
+          if-no-files-found: error
