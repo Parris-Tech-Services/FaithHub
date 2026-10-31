@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install yt-dlp
-        run: python -m pip install -U yt-dlp
+        run: python -m pip install -U yt-dlp requests
       - name: Check original publisher audio, validate playable media, and record results
         shell: bash
         run: |
