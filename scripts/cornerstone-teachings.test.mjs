@@ -64,3 +64,18 @@ test('GitHub Pages binds Cornerstone to its exact published source SHA', () => {
   assert.match(workflow, /for filename in \("index\.html", "psalms\.html", "cornerstone-teachings\.html", "backup\.html"\)/);
   assert.match(workflow, /faithhub-deploy-sha/);
 });
+
+test('Cornerstone dark mode is accessible and shares the home page preference', () => {
+  const bootstrap = html.match(/<script id="faithhub-theme-boot">([\s\S]+?)<\/script>/)?.[1];
+  assert.ok(bootstrap, 'Initial preference must be applied before CSS paints');
+  new Script(bootstrap);
+  assert.match(home, /const THEME_STORAGE = 'faithhub-theme'/);
+  assert.match(script, /const THEME_KEY = "faithhub-theme"/);
+  assert.match(html, /id="themeToggle"[^>]+aria-pressed="false"/);
+  assert.match(html, /:root\.dark\{/);
+  assert.match(html, /--accent-on:/);
+  assert.match(html, /--hero-gradient:/);
+  assert.match(script, /themeToggle\.addEventListener\("click"/);
+  assert.match(script, /window\.addEventListener\("storage"/);
+  assert.doesNotMatch(script, /localStorage\.removeItem\(STORE\).*theme/i);
+});
