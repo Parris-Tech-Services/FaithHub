@@ -1,0 +1,30 @@
+name: Cornerstone Mixcloud source verification
+on:
+  push:
+    branches: [feat/cornerstone-mixcloud-private-drive-player-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-mixcloud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check public publisher-owned Mixcloud catalogue metadata
+        run: |
+          python3 - <<'PY'
+          import json,urllib.request
+          u='https://api.mixcloud.com/cornerstonecommunitypodcast/cloudcasts/?limit=100'
+          try:
+              req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'})
+              with urllib.request.urlopen(req,timeout=20) as r:
+                  data=json.load(r)
+              print('MIXCLOUD_HTTP_SUCCESS')
+              print('MIXCLOUD_EPISODE_COUNT',len(data.get('data',[])))
+              for item in data.get('data',[])[:8]:
+                  print('MIXCLOUD_SAMPLE',item.get('name'),item.get('key'),item.get('url'))
+              print('MIXCLOUD_HAS_NEXT',bool(data.get('paging',{}).get('next')))
+          except Exception as e:
+              print('MIXCLOUD_UNAVAILABLE',type(e).__name__,str(e)[:250])
+          PY
