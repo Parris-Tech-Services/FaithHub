@@ -96,7 +96,7 @@ test('Cornerstone catalogue adds 115 individual audio/archival entries and never
 });
 
 test('public Mixcloud widget is deliberately opt-in, private Drive URLs never ship with the page',()=>{
-  assert.match(page,/value\.mode==='mixcloud'/);
+  assert.match(page,/\['unavailable','audio','mixcloud'\]\.includes\(value\.mode\)/);
   assert.match(page,/audioLink\.hostname!=='www\.mixcloud\.com'/);
   assert.match(page,/audioLink\.pathname!=='\/widget\/iframe\/'/);
   assert.match(page,/frame\.src=e\.embed/);
