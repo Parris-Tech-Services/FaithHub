@@ -26,3 +26,18 @@ jobs:
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true' EXIT
           node scripts/cornerstone-iframe-diagnostic.mjs
+
+      - name: Verify each publisher-hosted direct audio stream progresses five seconds
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/audio-web.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          node scripts/cornerstone-direct-audio-e2e.mjs
+      - name: Save public source test results without audio
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cornerstone-direct-stream-playback
+          path: cornerstone-direct-audio-test-results.json
+          if-no-files-found: ignore
+          retention-days: 30
