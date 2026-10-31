@@ -171,7 +171,7 @@ function loadCurrent(){
 function saveCurrent(){
   try{localStorage.setItem(STORAGE,current)}catch{}
 }
-function categoryLabel(e){return e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
+function categoryLabel(e){return e.mode==='unavailable'?'Cornerstone archive · audio unavailable':e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
 function showSelected(id,{scroll=false,load=false}={}){
   const e=catalogue.find(row=>row.id===id);
   if(!e)return;
@@ -188,6 +188,9 @@ function showSelected(id,{scroll=false,load=false}={}){
     p.textContent='Selected: '+e.title+'. Choose “Listen here” below to load the external player.';
     playerHost.append(p);
     playbackStatus.textContent='No audio has loaded.';
+  }else if(e.mode==='unavailable'){
+    const p=document.createElement('p');p.className='player-placeholder';p.textContent='This historic episode is catalogued, but its original audio host could not be reached at the latest source check. No working audio file is available here.';playerHost.append(p);
+    playbackStatus.textContent='Archived entry only; playback is unavailable until the original source is restored.';
   }else if(e.mode==='external'){
     const p=document.createElement('p');
     p.className='player-placeholder';
@@ -235,8 +238,8 @@ function render(){
   resultCount.textContent=rows.length+' of '+catalogue.length+' recordings shown';
   grid.innerHTML=rows.map(function(e){
     const isSelected=e.id===current;
-    const button=e.mode==='external'?'':'<button class="play-btn primary" type="button" data-select="'+esc(e.id)+'">Listen here</button>';
-    return '<article class="card'+(isSelected?' playing':'')+'"><p class="mode">'+esc(categoryLabel(e))+(e.mode==='external'?' · external only':' · on-page player')+'</p>'+
+    const button=e.mode==='external'||e.mode==='unavailable'?'':'<button class="play-btn primary" type="button" data-select="'+esc(e.id)+'">Listen here</button>';
+    return '<article class="card'+(isSelected?' playing':'')+'"><p class="mode">'+esc(categoryLabel(e))+(e.mode==='external'||e.mode==='unavailable'?' · source link only':' · on-page player')+'</p>'+
       '<h2>'+esc(e.title)+'</h2><div class="meta">'+esc(e.show)+(e.date?' · '+esc(e.date):'')+(e.duration?' · '+esc(e.duration):'')+'</div>'+
       (e.note?'<p class="note">'+esc(e.note)+'</p>':'')+
       '<div class="tags">'+e.tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>'+
@@ -272,7 +275,9 @@ async function loadCornerstoneEpisodes(){
     for(const value of data.episodes.slice(0,500)){
       if(!value||!allowedShowIds.has(String(value.showId))||typeof value.id!=='string'||!value.id.startsWith('cornerstone:episode:')||foundIds.has(value.id))continue;
       if(typeof value.title!=='string'||typeof value.show!=='string'||!Array.isArray(value.tags)||!value.tags.includes('cornerstone'))continue;
-      if(typeof value.embed!=='string'||typeof value.url!=='string')continue;
+      if(typeof value.url!=='string'||typeof value.embed!=='string')continue;
+      const mode=value.mode==='unavailable'?'unavailable':value.mode==='audio'?'audio':null;
+      if(!mode)continue;
       let audioLink,sourceLink;
       try{audioLink=new URL(value.embed);sourceLink=new URL(value.url)}catch{continue}
       if(audioLink.protocol!=='https:'||sourceLink.protocol!=='https:'||!audioLink.hostname||!sourceLink.hostname)continue;
@@ -281,7 +286,7 @@ async function loadCornerstoneEpisodes(){
         id:value.id,title:value.title.slice(0,240),show:value.show.slice(0,170),
         tags:['cornerstone',...value.tags.filter(x=>typeof x==='string'&&x!=='cornerstone').slice(0,10)],
         duration:typeof value.duration==='string'?value.duration.slice(0,40):'',
-        provider:'audio',mode:'audio',url:sourceLink.href,embed:audioLink.href,
+        provider:mode==='audio'?'audio':'external',mode,url:sourceLink.href,embed:audioLink.href,
         date:typeof value.date==='string'?value.date.slice(0,20):'',
         note:typeof value.note==='string'?value.note.slice(0,350):'',
         showId:String(value.showId)
@@ -298,10 +303,12 @@ async function loadCornerstoneEpisodes(){
     }
     render();
     const total=loaded.length;
+    const playable=loaded.filter(e=>e.mode==='audio').length;
+    const archived=loaded.filter(e=>e.mode==='unavailable').length;
     const published=data.shows.reduce((n,s)=>n+(Number(s.expectedByPublisher)||0),0);
-    const unavailable=data.shows.filter(s=>!present.has(String(s.showId))).map(s=>s.title);
+    const missing=data.shows.filter(s=>!present.has(String(s.showId))).map(s=>s.title);
     cornerstoneFeedStatus.textContent=total
-      ?total+' individual Cornerstone episodes available in this player'+(published>total?' (of '+published+' listed by publishers)':'')+'.'+(unavailable.length?' Source unavailable: '+unavailable.join(', ')+'.':'')
+      ?total+' Cornerstone episodes catalogued: '+playable+' with audio streams reachable at the last check, '+archived+' historic listings with unavailable audio'+(published>total?' ('+(published-total)+' not recovered)':'')+'.'+(missing.length?' Missing collection: '+missing.join(', ')+'.':'')
       :'No Cornerstone audio addresses could be retrieved at build time. Use the original catalogue links.';
   }catch(error){
     cornerstoneFeedStatus.textContent='Cornerstone episode feed could not load. The three original catalogue links remain available. '+(error.message||'');
