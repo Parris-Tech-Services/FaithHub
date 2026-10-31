@@ -14,7 +14,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import urllib.request, urllib.parse
-          ids=['13N5scRPE3iDD3Gd_c-7kzY-ukpGIzOYn','1wAJpeAHjun-U1te9EmH4R3SVZZ-RCTWM','1RhZvH5kr17kf2qIaViGPuH5SG4N8ee-E']
+          ids=['1nVt8yr60tkwjZ22a4vOUke47QmoEg6k-','1bOpWdtTfC6QMKRm9hNJAe7dLcQXxnM83','1RhZvH5kr17kf2qIaViGPuH5SG4N8ee-E']
           for id in ids:
            urls=[f'https://drive.usercontent.google.com/download?id={id}&export=download&confirm=t',f'https://faithhub-cornerstone-audio.parris-neathaustralia.workers.dev/audio/{id}']
            for url in urls:
