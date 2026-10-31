@@ -62,7 +62,7 @@ try{
   await page.locator('#filter').selectOption('cornerstone');
   assert.equal(await page.locator('#grid article').count(),115);
   assert.equal(await page.locator('#grid [data-select]').count(),19,'19 source streams should be selectable in-page');
-  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 Cornerstone episodes catalogued: 19/);
+  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 Cornerstone recordings: 19/);
   await page.locator('#search').fill('Paul Roe');
   assert.equal(await page.locator('#grid article').count(),1);
   await page.locator('#grid [data-select]').click();
