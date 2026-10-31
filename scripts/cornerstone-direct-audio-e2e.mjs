@@ -26,7 +26,7 @@ try{
      });
      await page.locator('#play-sample').focus();
      await page.keyboard.press('Enter');
-     try{await page.waitForFunction(()=>document.querySelector('#playerHost audio')?.currentTime>=5,{timeout:13000});}
+     try{await page.waitForFunction(()=>document.querySelector('#playerHost audio')?.currentTime>=5,null,{timeout:13000});}
      catch{}
      const status=await page.evaluate(()=>{
        const a=document.querySelector('#playerHost audio');
