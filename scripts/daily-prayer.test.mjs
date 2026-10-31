@@ -24,5 +24,11 @@ test('daily calendar uses floating wall time, a stable UID, daily repeat and an 
 test('all prayer moments have a Scripture and next action; all nine fruits present',()=>{assert.equal(new Set(moments.map(m=>m.id)).size,7);for(const m of moments)assert.ok(m.prayer&&m.scripture&&m.next&&m.posture);assert.equal(fruits.length,9);});
 test('new page has local scripts only, privacy boundaries and accessible controls',()=>{
  const html=readFileSync(new URL('../daily-prayer.html',import.meta.url),'utf8');const js=readFileSync(new URL('../assets/daily-prayer.mjs',import.meta.url),'utf8');
- assert.doesNotMatch(html,/<script[^>]+src=["']https?:/);assert.doesNotMatch(js,/innerHTML|fetch\(/);assert.match(html,/no reminder|does not activate a reminder/);assert.match(js,/localStorage\.setItem/);assert.match(js,/textContent/);
+ const externals=[...html.matchAll(/<script\\b[^>]*\\bsrc=["'](https?:\\/\\/[^"']+)["'][^>]*>/g)];
+ assert.ok(externals.length<=1,'At most the approved analytics settings script may be present');
+ for(const tag of externals){
+   assert.equal(tag[1],'https://parris-analytics.parris-neathaustralia.workers.dev/tracker.js');
+   assert.match(tag[0],/data-site=["']faithhub["']/);
+   assert.match(tag[0],/referrerpolicy=["']no-referrer["']/);
+ }assert.doesNotMatch(js,/innerHTML|fetch\(/);assert.match(html,/no reminder|does not activate a reminder/);assert.match(js,/localStorage\.setItem/);assert.match(js,/textContent/);
 });
