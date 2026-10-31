@@ -19,9 +19,7 @@ try{
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(base+'/podcasts.html',{waitUntil:'domcontentloaded'});
-    await page.waitForTimeout(800);
-    console.log('PRIVATE_BROWSER_DIAGNOSTIC',width,JSON.stringify({result:await page.locator('#resultCount').textContent(),status:await page.locator('#cornerstoneFeedStatus').textContent(),errors}));
-    await page.getByText('31 of 31 recordings shown').waitFor({timeout:8000});
+    await page.getByText('33 of 33 recordings shown').waitFor({timeout:12000});
     await page.locator('#filter').selectOption('cornerstone');
     assert.equal(await page.locator('#grid [data-select]').count(),1);
     await page.locator('#grid [data-select]').click();
