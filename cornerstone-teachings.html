@@ -4,8 +4,16 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="FaithHub Cornerstone Teachings — discover original audio, official courses and gentle, interactive study of whole-of-life discipleship.">
 <title>Cornerstone Teachings | FaithHub</title>
+<script id="faithhub-theme-boot">
+try {
+  if (localStorage.getItem('faithhub-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+} catch { /* Private browsing and blocked storage still allow a manual theme toggle. */ }
+</script>
 <style>
-:root{color-scheme:light dark;--bg:#faf9f7;--fg:#192321;--muted:#52605a;--card:#fff;--line:#b8c5bc;--accent:#163b32;--highlight:#e8f0e8}
+:root{color-scheme:light;--bg:#faf9f7;--fg:#192321;--muted:#52605a;--card:#fff;--line:#b8c5bc;--accent:#163b32;--accent-on:#fff;--highlight:#e8f0e8;--hero-gradient:linear-gradient(140deg,#e9f2e9,#f9f8f3);--boundary:#f7f5ef}
+:root.dark{color-scheme:dark;--bg:#101a16;--fg:#eff5f0;--muted:#c3d4ca;--card:#1d2b24;--line:#576b60;--accent:#caead4;--accent-on:#15291e;--highlight:#284234;--hero-gradient:linear-gradient(140deg,#283d30,#18291f);--boundary:#24362d}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -17,11 +25,12 @@ h2{font-size:1.55rem;letter-spacing:-.02em;line-height:1.2;margin:0 0 10px}h3{ma
 p{margin:0 0 12px}small,.muted{color:var(--muted)}
 .kicker{letter-spacing:.11em;text-transform:uppercase;font-weight:800;font-size:.79rem}
 .hero,.panel,.lesson,.resource,.boundary{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:20px}
-.hero{background:linear-gradient(140deg,#e9f2e9,#f9f8f3);margin-bottom:18px}
+.hero{background:var(--hero-gradient);margin-bottom:18px}
 .hero p{max-width:740px}
 nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+#themeToggle{margin-left:auto;white-space:nowrap}
 .navlink,.button,button{border:1.5px solid var(--accent);border-radius:12px;background:var(--card);color:var(--accent);font:700 .94rem/1.3 system-ui,sans-serif;padding:10px 14px;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
-.button.primary,button.primary{background:var(--accent);color:white}
+.button.primary,button.primary{background:var(--accent);color:var(--accent-on)}
 .section{margin:30px 0 18px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
@@ -45,7 +54,7 @@ textarea{min-height:110px;resize:vertical}
 .choices input{width:auto;margin-top:4px}
 .status{min-height:1.5em;font-weight:650}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.boundary{background:#f7f5ef}
+.boundary{background:var(--boundary)}
 footer{color:var(--muted);font-size:.88rem;margin-top:32px}
 @media(max-width:760px){main{padding-top:14px}.grid,.cards{grid-template-columns:1fr}.hero,.panel,.lesson{padding:16px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -53,7 +62,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:32px}
 </head>
 <body>
 <main>
-<nav aria-label="FaithHub navigation"><a class="navlink" href="./">FaithHub home</a><a class="navlink" href="podcasts.html">Faith podcasts</a><a class="navlink" href="scripture-atlas.html">Scripture Atlas</a><a class="navlink" href="prayer-practice.html">Prayer practice</a></nav>
+<nav aria-label="FaithHub navigation"><a class="navlink" href="./">FaithHub home</a><a class="navlink" href="podcasts.html">Faith podcasts</a><a class="navlink" href="scripture-atlas.html">Scripture Atlas</a><a class="navlink" href="prayer-practice.html">Prayer practice</a><button id="themeToggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">Dark mode</button></nav>
 <header class="hero">
 <div class="kicker">FaithHub / Learning &amp; discipleship</div>
 <h1>Cornerstone Teachings</h1>
@@ -106,6 +115,26 @@ footer{color:var(--muted);font-size:.88rem;margin-top:32px}
 </main>
 <script>
 "use strict";
+const THEME_KEY = "faithhub-theme";
+const themeToggle = document.getElementById("themeToggle");
+function syncThemeFromStorage() {
+  let dark = false;
+  try { dark = localStorage.getItem(THEME_KEY) === "dark"; } catch { /* Storage is optional. */ }
+  document.documentElement.classList.toggle("dark", dark);
+  themeToggle.textContent = dark ? "Light mode" : "Dark mode";
+  themeToggle.setAttribute("aria-pressed", String(dark));
+}
+themeToggle.addEventListener("click", () => {
+  const dark = !document.documentElement.classList.contains("dark");
+  document.documentElement.classList.toggle("dark", dark);
+  themeToggle.textContent = dark ? "Light mode" : "Dark mode";
+  themeToggle.setAttribute("aria-pressed", String(dark));
+  try { localStorage.setItem(THEME_KEY, dark ? "dark" : "light"); } catch { /* The toggle still works for this session. */ }
+});
+window.addEventListener("storage", event => {
+  if (event.key === THEME_KEY || event.key === null) syncThemeFromStorage();
+});
+syncThemeFromStorage();
 const RESOURCES=[
 {type:"podcast",title:"Cornerstone Community Podcast — 96 episodes",by:"Cornerstone Community Australia · 2008–2018",summary:"Historic Muster teaching with Laurie McIntosh, Paul Roe's contemporaries, Andrew Vincent, Lucas Frost and others.",url:"https://podcasts.apple.com/au/podcast/cornerstone-community-podcast/id293630407"},
 {type:"podcast",title:"Cornerstone Community Bendigo — 18 episodes",by:"Published by Joshua Parris · 2022–2023",summary:"Historical Muster recordings and Conversations with Laurie on the opening of John's Gospel.",url:"https://podcasts.apple.com/us/podcast/cornerstone-community-bendigo/id1631726711"},
