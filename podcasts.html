@@ -197,7 +197,7 @@ function loadCurrent(){
 function saveCurrent(){
   try{localStorage.setItem(STORAGE,current)}catch{}
 }
-function categoryLabel(e){return e.id.startsWith('public:drive:')?'Public Cornerstone MP3':e.mode==='unavailable'?'Cornerstone archive · audio unavailable':e.mode==='mixcloud'?'Cornerstone · Mixcloud':e.mode==='drive'?'Private Drive recording':e.mode==='local'?'Private on-device audio':e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
+function categoryLabel(e){return e.id.startsWith('public:drive:')?'Public Cornerstone recording':e.mode==='unavailable'?'Cornerstone archive · audio unavailable':e.mode==='mixcloud'?'Cornerstone · Mixcloud':e.mode==='drive'?'Private Drive recording':e.mode==='local'?'Private on-device audio':e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
 function showSelected(id,{scroll=false,load=false}={}){
   const e=catalogue.find(row=>row.id===id);
   if(!e)return;
@@ -242,10 +242,16 @@ function showSelected(id,{scroll=false,load=false}={}){
     audio.setAttribute('aria-label','Audio: '+e.title);
     audio.src=e.embed;
     audio.addEventListener('error', () => {
-      playbackStatus.textContent='This recording could not play in this browser. The source link remains available; this is a restriction of the original audio host or a missing media file.';
+      playbackStatus.textContent='Playback failed for this recording. Use Open at source or try another track; Google Drive may temporarily limit streaming.';
     });
+    if(e.id.startsWith('public:drive:')){
+      let confirmed=false;
+      audio.addEventListener('timeupdate',()=>{
+        if(!confirmed&&audio.currentTime>=2){confirmed=true;playbackStatus.textContent='Playing in FaithHub: '+e.title;}
+      });
+    }
     playerHost.append(audio);
-    playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
+    playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':e.id.startsWith('public:drive:')?'Public MP3 ready. Press Play using the FaithHub audio controls; successful playback will be confirmed after two seconds.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
   }else{
     const frame=document.createElement('iframe');
     frame.title=categoryLabel(e)+' player: '+e.title;
@@ -442,8 +448,8 @@ async function loadPublicCornerstoneAudio(){
         title:x.title.replace(/\.(mp3|m4a|aac|ogg|flac)$/i,'').replace(/_/g,' ').slice(0,240),
         show:'Cornerstone Community · '+folder,
         tags:['cornerstone','public','audio','archive',...folder.toLowerCase().split(/[\\/]/).filter(Boolean).slice(-3)],
-        duration:'',provider:'drive',mode:'drive',url:'https://drive.google.com/file/d/'+encodeURIComponent(x.id)+'/view',
-        note:'Originally published Cornerstone recording. This public file plays through Google Drive within FaithHub; the player must actually advance to confirm playback.'
+        duration:'',provider:'audio',mode:'audio',embed:'https://drive.usercontent.google.com/download?id='+encodeURIComponent(x.id)+'&export=download&confirm=t',url:'https://drive.google.com/file/d/'+encodeURIComponent(x.id)+'/view',
+        note:'Publicly shared recovered recording. Play using FaithHub’s audio controls; the source remains available on Google Drive.'
       });
     }
     for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].id.startsWith('public:drive:'))catalogue.splice(i,1);
@@ -452,7 +458,7 @@ async function loadPublicCornerstoneAudio(){
     if(!new URLSearchParams(location.search).get('episode')&&requestedTopic==='cornerstone'&&records.length)
       {current=records[0].id;showSelected(current);}
     render();
-    cornerstoneFeedStatus.textContent=records.length+' recovered public MP3/M4A recordings ready to select on this page. Public Google Drive player availability varies; every stream still needs real audio-progress verification. '+cornerstoneFeedStatus.textContent;
+    cornerstoneFeedStatus.textContent=records.length+' public MP3/M4A recordings with direct audio sources. Choose a recording and press Play. '+cornerstoneFeedStatus.textContent;
   }catch(error){
     cornerstoneFeedStatus.textContent='Public archive index unavailable: '+error.message+'. '+cornerstoneFeedStatus.textContent;
   }
