@@ -82,7 +82,7 @@ test('each compatible saints resource links back to the same catalogue',()=>{
 test('Cornerstone catalogue adds 115 individual audio/archival entries and never fakes inaccessible streams',()=>{
   assert.match(page,/async function loadCornerstoneEpisodes\(\)/);
   assert.match(page,/cornerstone-episodes\.json/);
-  assert.match(page,/loaded\.filter\(e=>e\.mode==='audio'\|\|e\.mode==='mixcloud'\)\.length/);
+  assert.match(page,/loaded\.filter\(e=>e\.verificationStatus==='VERIFIED_PLAYABLE'\)\.length/);
   assert.match(page,/loaded\.filter\(e=>e\.mode==='unavailable'\)\.length/);
   assert.match(page,/e\.mode==='external'\|\|e\.mode==='unavailable'/);
   assert.match(page,/audio\.addEventListener\('error'/);

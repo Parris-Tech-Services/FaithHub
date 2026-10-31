@@ -1,0 +1,18 @@
+name: Cornerstone public original-source recovery
+on:
+  push:
+    branches: [feat/cornerstone-underlying-audio-recovery-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check selected dead public enclosures against lawful Wayback captures
+        run: python3 scripts/cornerstone-original-source-audit.py

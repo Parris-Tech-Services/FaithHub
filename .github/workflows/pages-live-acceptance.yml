@@ -42,6 +42,11 @@ jobs:
         env:
           EXPECTED_DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
         run: node scripts/pages-live-browser.mjs
+      - name: Verify two Cornerstone recordings actually progress on the deployed website
+        if: ${{ github.event_name == 'workflow_run' }}
+        env:
+          EXPECTED_DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: node scripts/cornerstone-live-direct-audio.mjs
       - name: Report exact verification scope
         if: success()
         shell: bash
