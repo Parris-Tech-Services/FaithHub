@@ -18,6 +18,7 @@ const publicFeedFixture={
     return {
       id:'cornerstone:episode:'+id+':fixture-'+i,title,show:old?'Cornerstone Community Podcast':paul?'Paul Roe':"Cornerstone Community Bendigo",
       tags:['cornerstone','discipleship'],duration:'38 min',provider:old?'external':'audio',mode:old?'unavailable':'audio',
+      verificationStatus:old?'MISSING':i<110?'VERIFIED_PLAYABLE':'PLAYBACK_FAILED',
       url:'https://podcasts.apple.com/au/podcast/id'+id,
       embed:'https://public-media.example.org/audio/'+i+'.mp3',date:'2018-12-01',note:'Synthetic browser fixture',showId:id
     };
@@ -54,6 +55,8 @@ try{
   assert.equal(await page.locator('#grid article').count(),1);
   assert.equal(await page.locator('#grid article a').getAttribute('href'),'https://prayasyougo.org/');
   await page.locator('#search').fill('');
+  await page.locator('#filter').selectOption('cornerstone-verified');
+  assert.equal(await page.locator('#grid article').count(),14);
   await page.locator('#filter').selectOption('cornerstone-audio');
   assert.equal(await page.locator('#grid article').count(),19);
   await page.locator('#filter').selectOption('cornerstone-archive');
@@ -62,7 +65,7 @@ try{
   await page.locator('#filter').selectOption('cornerstone');
   assert.equal(await page.locator('#grid article').count(),115);
   assert.equal(await page.locator('#grid [data-select]').count(),19,'19 source streams should be selectable in-page');
-  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 public catalogue entries: 19 direct audio sources/);
+  assert.match(await page.locator('#cornerstoneFeedStatus').textContent(),/115 public catalogue entries: 14 independently browser-verified playing/);
   await page.locator('#search').fill('Paul Roe');
   assert.equal(await page.locator('#grid article').count(),1);
   await page.locator('#grid [data-select]').click();
