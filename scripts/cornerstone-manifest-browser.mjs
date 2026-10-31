@@ -33,7 +33,7 @@ try{
   assert.match(stored,/Paul Roe/);
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('#filter').selectOption('cornerstone-private');
-  assert.equal(await page.locator('#grid article').count(),1);
+  assert.equal(await page.locator('#grid article').count(),2,'All saved private recordings restored after reload');
   assert.equal(await page.locator('#search').inputValue(),''); // Search resets on reload
   await page.locator('#search').fill('Love, Fruit');
   assert.equal(await page.locator('#grid article').count(),1);
