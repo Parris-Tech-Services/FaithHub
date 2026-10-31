@@ -1,0 +1,25 @@
+name: Cornerstone all-file public audio range audit
+on:
+  push:
+    branches: [feat/cornerstone-all-public-audio-20261101]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify range streaming on all published MP3/M4A files
+        run: python3 scripts/audit-cornerstone-public-media.py
+      - name: Publish summary if available
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cornerstone-public-range-audit
+          path: cornerstone-public-range-audit.json
+          if-no-files-found: ignore

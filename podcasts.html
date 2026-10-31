@@ -95,7 +95,7 @@
   <section class="player" id="private-recordings" aria-label="Private Cornerstone recordings">
     <div class="player-kicker">Your private Cornerstone archive</div>
     <h2>Listen to recordings from your own Drive or device</h2>
-    <p>Import the Google Colab copy-results CSV (or a private JSON catalogue) to browse the recordings within FaithHub. This does not upload their contents or file IDs to the public site. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
+    <p>The public Cornerstone recordings load automatically above — no import or login needed. This optional advanced section is only for additional personal recordings. Importing them does not upload their contents or file IDs to the public site. They stay saved only in this browser; no Drive file IDs, audio files, or catalogue contents are uploaded to FaithHub. Google may require you to be signed in to play private files in its embedded preview.</p>
     <div class="private-import">
       <label for="driveCatalogueFile">Import Cornerstone copy-results CSV or private Drive catalogue JSON</label>
       <input id="driveCatalogueFile" type="file" accept=".csv,text/csv,.json,application/json">
@@ -108,7 +108,7 @@
 
   <section id="catalogue" aria-label="Search the podcast catalogue">
     <div class="filters"><div><label for="search">Search titles, saints, shows and themes</label><input id="search" class="search" type="search" placeholder="Try Paul Roe, Laurie, Romans, Joy, Teresa or Sabbath" /></div>
-    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — in-page players (availability varies)</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="cornerstone-private">Cornerstone — my private recordings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
+    <div><label for="filter">Browse by topic or player</label><select id="filter"><option value="all">All recordings</option><option value="prayer">Prayer and the saints</option><option value="cornerstone">Cornerstone teachings</option><option value="cornerstone-audio">Cornerstone — in-page players (availability varies)</option><option value="cornerstone-public">Cornerstone — public MP3 library</option><option value="cornerstone-archive">Cornerstone — historic archive</option><option value="cornerstone-private">Cornerstone — my private recordings</option><option value="spotify">Spotify episodes</option><option value="apple">Apple Podcasts</option><option value="audio">Publisher audio</option><option value="external">Open at provider</option></select></div></div>
     <p id="resultCount" role="status"></p><p id="cornerstoneFeedStatus" class="status" role="status" aria-live="polite">Loading Cornerstone episodes from the published podcast feeds…</p>
   </section>
   <section id="grid" class="grid"></section>
@@ -197,7 +197,7 @@ function loadCurrent(){
 function saveCurrent(){
   try{localStorage.setItem(STORAGE,current)}catch{}
 }
-function categoryLabel(e){return e.mode==='unavailable'?'Cornerstone archive · audio unavailable':e.mode==='mixcloud'?'Cornerstone · Mixcloud':e.mode==='drive'?'Private Drive recording':e.mode==='local'?'Private on-device audio':e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
+function categoryLabel(e){return e.id.startsWith('public:drive:')?'Public Cornerstone recording':e.mode==='unavailable'?'Cornerstone archive · audio unavailable':e.mode==='mixcloud'?'Cornerstone · Mixcloud':e.mode==='drive'?'Private Drive recording':e.mode==='local'?'Private on-device audio':e.tags.includes('cornerstone')?'Cornerstone recording':({spotify:'Spotify',apple:'Apple Podcasts',audio:'Publisher audio',external:'Provider website'}[e.provider]);}
 function showSelected(id,{scroll=false,load=false}={}){
   const e=catalogue.find(row=>row.id===id);
   if(!e)return;
@@ -227,14 +227,14 @@ function showSelected(id,{scroll=false,load=false}={}){
     playbackStatus.textContent='An external listening link is available; no embedded player is offered.';
   }else if(e.mode==='drive'){
     const frame=document.createElement('iframe');
-    frame.title='Private Google Drive recording: '+e.title;
+    frame.title=(e.id.startsWith('public:drive:')?'Public Cornerstone recording: ':'Private Google Drive recording: ')+e.title;
     frame.loading='eager';
     frame.allow='autoplay';
     frame.referrerPolicy='no-referrer';
     frame.style.height='240px';
     frame.src='https://drive.google.com/file/d/'+encodeURIComponent(e.driveId)+'/preview';
     playerHost.append(frame);
-    playbackStatus.textContent='Google Drive preview loaded inside FaithHub. Playback requires permission to this file and a signed-in Google account; browsers blocking third-party sign-in may require opening Google Drive.';
+    playbackStatus.textContent=e.id.startsWith('public:drive:')?'Public Google Drive audio player loaded. Press play inside it; loading the player alone does not confirm that audio is playing.':'Private Google Drive preview loaded inside FaithHub. Playback may require you to be signed in.';
   }else if(e.mode==='audio'||e.mode==='local'){
     const audio=document.createElement('audio');
     audio.controls=true;
@@ -242,10 +242,16 @@ function showSelected(id,{scroll=false,load=false}={}){
     audio.setAttribute('aria-label','Audio: '+e.title);
     audio.src=e.embed;
     audio.addEventListener('error', () => {
-      playbackStatus.textContent='This recording could not play in this browser. The source link remains available; this is a restriction of the original audio host or a missing media file.';
+      playbackStatus.textContent='Playback failed for this recording. Use Open at source or try another track; Google Drive may temporarily limit streaming.';
     });
+    if(e.id.startsWith('public:drive:')){
+      let confirmed=false;
+      audio.addEventListener('timeupdate',()=>{
+        if(!confirmed&&audio.currentTime>=2){confirmed=true;playbackStatus.textContent='Playing in FaithHub: '+e.title;}
+      });
+    }
     playerHost.append(audio);
-    playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
+    playbackStatus.textContent=e.mode==='local'?'Private audio ready on this device. No recording was uploaded.':e.id.startsWith('public:drive:')?'Public Cornerstone MP3 ready. Press Play; successful audio playback is confirmed after two seconds.':'Publisher-hosted audio is ready. Press play to listen inside FaithHub.';
   }else{
     const frame=document.createElement('iframe');
     frame.title=categoryLabel(e)+' player: '+e.title;
@@ -335,7 +341,7 @@ function pickDifferent(){
 function matches(e){
   const q=search.value.trim().toLocaleLowerCase();
   const selected=filter.value;
-  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||(selected==='cornerstone-audio'&&e.tags.includes('cornerstone')&&['audio','mixcloud','drive','local'].includes(e.mode))||(selected==='cornerstone-archive'&&e.tags.includes('cornerstone')&&e.mode==='unavailable')||(selected==='cornerstone-private'&&['drive','local'].includes(e.mode))||selected===e.provider;
+  const inGroup=selected==='all'||(selected==='prayer'&&e.tags.includes('prayer'))||(selected==='cornerstone'&&e.tags.includes('cornerstone'))||(selected==='cornerstone-audio'&&e.tags.includes('cornerstone')&&['audio','mixcloud','drive','local'].includes(e.mode))||(selected==='cornerstone-archive'&&e.tags.includes('cornerstone')&&e.mode==='unavailable')||(selected==='cornerstone-private'&&e.id.startsWith('private:'))||(selected==='cornerstone-public'&&e.id.startsWith('public:drive:'))||selected===e.provider;
   return inGroup&&[e.title,e.show,e.note,e.duration,categoryLabel(e)].concat(e.tags).join(' ').toLocaleLowerCase().includes(q);
 }
 function render(){
@@ -422,7 +428,42 @@ async function loadCornerstoneEpisodes(){
     cornerstoneFeedStatus.textContent='Cornerstone episode feed could not load. The three original catalogue links remain available. '+(error.message||'');
   }
 }
-loadCornerstoneEpisodes();
+// Separate public audio collection; MP3 URLs stay with the publicly shared owner
+// and never require the user to import a catalogue.
+async function loadPublicCornerstoneAudio(){
+  try {
+    const response=await fetch('./assets/cornerstone-public-recordings.json',{cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const data=await response.json();
+    if(data.version!==1||!Array.isArray(data.entries))throw new Error('Unexpected archive index');
+    const records=[],seen=new Set();
+    for(const x of data.entries.slice(0,1000)){
+      if(typeof x.id!=='string'||!(/^[A-Za-z0-9_-]{15,120}$/).test(x.id)||seen.has(x.id))continue;
+      if(typeof x.title!=='string'||typeof x.folder!=='string'||typeof x.bytes!=='number'||x.bytes<=0)continue;
+      if(!/\.(mp3|m4a|aac|ogg|flac)$/i.test(x.title)||/leo[\W_]*(and|&)\s*margaret|margaret[\W_]*(and|&)\s*leo/i.test(x.title))continue;
+      seen.add(x.id);
+      const folder=x.folder.slice(0,170);
+      records.push({
+        id:'public:drive:'+x.id,driveId:x.id,
+        title:x.title.replace(/\.(mp3|m4a|aac|ogg|flac)$/i,'').replace(/_/g,' ').slice(0,240),
+        show:'Cornerstone Community · '+folder,
+        tags:['cornerstone','public','audio','archive',...folder.toLowerCase().split(/[\\/]/).filter(Boolean).slice(-3)],
+        duration:'',provider:'audio',mode:'audio',embed:'https://faithhub-cornerstone-audio.parris-neathaustralia.workers.dev/audio/'+encodeURIComponent(x.id),url:'https://drive.google.com/file/d/'+encodeURIComponent(x.id)+'/view',
+        note:'Publicly shared recovered recording. Stream through FaithHub’s Cloudflare audio gateway; the original file is kept on Google Drive.'
+      });
+    }
+    for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].id.startsWith('public:drive:'))catalogue.splice(i,1);
+    // Put recovered audio first; retain all original feed metadata for historical research.
+    catalogue.splice(0,0,...records);
+    if(!new URLSearchParams(location.search).get('episode')&&requestedTopic==='cornerstone'&&records.length)
+      {current=records[0].id;showSelected(current);}
+    render();
+    cornerstoneFeedStatus.textContent=records.length+' public MP3/M4A recordings with direct audio sources. Choose a recording and press Play. '+cornerstoneFeedStatus.textContent;
+  }catch(error){
+    cornerstoneFeedStatus.textContent='Public archive index unavailable: '+error.message+'. '+cornerstoneFeedStatus.textContent;
+  }
+}
+loadCornerstoneEpisodes().finally(loadPublicCornerstoneAudio);
 
 // Keep analytics preferences accessible but not overlaid on podcast controls.
 (() => {
@@ -469,7 +510,7 @@ function restorePrivateCatalogue(){
   }catch{/* Invalid or blocked storage does not affect the public player. */}
 }
 function refreshPrivate(){
-  for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].mode==='drive'||catalogue[i].mode==='local')catalogue.splice(i,1);
+  for(let i=catalogue.length-1;i>=0;i--)if(catalogue[i].id.startsWith('private:'))catalogue.splice(i,1);
   catalogue.push(...privateDriveRecords,...localAudioRecords);
   if(!catalogue.some(e=>e.id===current)){current=featured[0].id;showSelected(current);}
   render();

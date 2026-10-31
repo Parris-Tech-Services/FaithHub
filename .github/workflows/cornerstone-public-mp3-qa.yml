@@ -1,0 +1,38 @@
+name: Cornerstone public MP3 catalogue and playback probe
+on:
+  push:
+    branches: [feat/cornerstone-all-public-audio-20261101]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-mp3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test existing and new podcast JavaScript
+        run: node --test scripts/*.test.mjs
+      - name: Verify public media metadata has no zero-byte files
+        run: |
+          python3 - <<'PY'
+          import json
+          p=json.load(open('assets/cornerstone-public-recordings.json'))
+          assert len(p['entries'])==205,len(p['entries'])
+          assert all(int(x['bytes'])>0 for x in p['entries'])
+          assert len({x['id'] for x in p['entries']})==205
+          print('205 public audio titles indexed without zero-byte entries')
+          PY
+      - name: Install mobile Chromium
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Probe actual public Google Drive player and UI
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/faithhub-server.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          node scripts/cornerstone-public-audio-browser.mjs

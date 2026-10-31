@@ -23,7 +23,12 @@ const publicFeedFixture={
     };
   })
 };
-const addFixture=page=>page.route('**/cornerstone-episodes.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(publicFeedFixture)}));
+const addFixture=async page=>{
+  await page.route('**/cornerstone-episodes.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(publicFeedFixture)}));
+  // This legacy-provider regression isolates the 115 historic RSS entries.
+  // Public 205-file archive has its own real-media browser acceptance.
+  await page.route('**/assets/cornerstone-public-recordings.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:1,entries:[]})}));
+};
 try{
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1,locale:'en-AU'});
   const page=await context.newPage();
