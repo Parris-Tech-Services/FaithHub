@@ -1,0 +1,27 @@
+name: Cornerstone public podcast feed verification
+on:
+  push:
+    branches:
+      - feat/cornerstone-full-podcast-feeds-20261031
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve the 3 public source feeds and report actual episode totals
+        run: |
+          python scripts/build-cornerstone-catalogue.py --output /tmp/cornerstone-episodes.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/cornerstone-episodes.json'))
+          for s in d['shows']:
+              print(f"{s['showId']}: {s['playableEnclosuresFound']} individual audio files available of {s['expectedByPublisher']} published")
+          print("TOTAL:",len(d["episodes"]))
+          PY
