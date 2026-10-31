@@ -181,7 +181,7 @@ def build():
         found = []
         keys = set()
         for item in (rss if len(rss) >= expected else rss + api):
-            key = re.sub(r"[^a-z0-9]+", "", item["title"].casefold())
+            key = item["embed"]  # two separate recordings may share the same title
             if key in keys:
                 continue
             found.append(item)
