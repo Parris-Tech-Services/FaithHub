@@ -8,6 +8,27 @@ try {
     const page = await browser.newPage({viewport});
     await page.goto(base+'/cornerstone-teachings.html',{waitUntil:'domcontentloaded'});
     await page.getByRole('heading',{name:'Cornerstone Teachings'}).waitFor();
+    const themeButton = page.locator('#themeToggle');
+    assert.equal(await themeButton.textContent(), 'Dark mode');
+    assert.equal(await themeButton.getAttribute('aria-pressed'), 'false');
+    const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await themeButton.click();
+    assert.equal(await themeButton.textContent(), 'Light mode');
+    assert.equal(await themeButton.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => document.documentElement.classList.contains('dark')), true);
+    assert.equal(await page.evaluate(() => localStorage.getItem('faithhub-theme')), 'dark');
+    const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    assert.notEqual(darkBackground, lightBackground, 'Dark theme must visibly change the page');
+    await page.reload({waitUntil:'domcontentloaded'});
+    assert.equal(await page.locator('#themeToggle').textContent(), 'Light mode', 'The page should restore the shared FaithHub preference on reload');
+    assert.equal(await page.evaluate(() => document.documentElement.classList.contains('dark')), true);
+    await page.locator('#themeToggle').click();
+    assert.equal(await page.evaluate(() => localStorage.getItem('faithhub-theme')), 'light');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), lightBackground);
+    await page.evaluate(() => localStorage.setItem('faithhub-theme', 'dark'));
+    await page.reload({waitUntil:'domcontentloaded'});
+    assert.equal(await page.locator('#themeToggle').textContent(), 'Light mode', 'A preference set by FaithHub home must be honoured');
+    await page.locator('#themeToggle').click();
     assert.equal(await page.locator('#resources .resource').count(),11);
     assert.equal(await page.locator('#pathways button').count(),6);
     await page.locator('#search').fill('Laurie');
@@ -40,7 +61,7 @@ try {
     assert.equal(overflow,false,'No horizontal scroll at viewport '+viewport.width);
     await page.close();
   }
-  console.log('Cornerstone Teachings: responsive resource search, 6-path navigation, quiz, local save/export/delete all passed.');
+  console.log('Cornerstone Teachings: responsive dark/light preference, 6 paths, quiz and private save/export/delete all passed.');
 } finally {
   await browser.close();
 }
