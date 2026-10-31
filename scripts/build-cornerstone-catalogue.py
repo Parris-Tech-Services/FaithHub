@@ -180,8 +180,8 @@ def build():
         # Prefer RSS, which may include older episodes Apple lookup omits.
         found = []
         keys = set()
-        for item in rss + api:
-            key = (item["title"].casefold().strip(), item["date"])
+        for item in (rss if len(rss) >= expected else rss + api):
+            key = re.sub(r"[^a-z0-9]+", "", item["title"].casefold())
             if key in keys:
                 continue
             found.append(item)
