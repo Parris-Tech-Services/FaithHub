@@ -35,7 +35,16 @@ try{
   });
   console.log('WIDGET_READY',ready,'IFRAME_BOX',JSON.stringify(box));
   let successes=0;
-  for(let n=0;n<candidates.length;n++){
+  try{
+    const play=contentFrame.locator('[data-testid="widget-play-button"]');
+    console.log('REAL_WIDGET_PLAY_EXISTS',await play.count());
+    await play.click({timeout:9000});
+    await page.waitForTimeout(8500);
+    const state=await page.evaluate(async()=>({pos:await window.__mixWidget.getPosition(),paused:await window.__mixWidget.getIsPaused(),duration:await window.__mixWidget.getDuration()}));
+    console.log('REAL_WIDGET_BUTTON_CLICK',JSON.stringify(state));
+    if(typeof state.pos==='number'&&state.pos>=5)successes++;
+  }catch(err){console.log('REAL_WIDGET_CLICK_FAILED',String(err).slice(0,320));}
+  for(let n=0;n<candidates.length && !successes;n++){
     const [x,y]=candidates[n];
     const pos={x:box.x+box.width*x,y:box.y+box.height*y};
     await page.mouse.click(pos.x,pos.y);
