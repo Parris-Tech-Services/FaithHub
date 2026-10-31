@@ -14,6 +14,9 @@ on:
       - backup.html
       - assets/backup-centre.mjs
       - scripts/backup-centre-browser.mjs
+      - cornerstone-teachings.html
+      - scripts/cornerstone-browser.mjs
+      - scripts/cornerstone-teachings.test.mjs
   workflow_dispatch:
 
 permissions:
