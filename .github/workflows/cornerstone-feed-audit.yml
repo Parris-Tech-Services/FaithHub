@@ -25,3 +25,17 @@ jobs:
               print(f"{s['showId']}: {s['playableEnclosuresFound']} individual audio files available of {s['expectedByPublisher']} published")
           print("TOTAL:",len(d["episodes"]))
           PY
+
+      - name: Inspect safe public Apple directory response shapes (no private data)
+        run: |
+          python - <<'PY'
+          import json,urllib.request
+          for show in (293630407,1631726711,1631658757):
+              for q in (f'https://itunes.apple.com/lookup?id={show}&country=au',f'https://itunes.apple.com/lookup?id={show}&entity=podcastEpisode&limit=200&country=au'):
+                  try:
+                      d=json.load(urllib.request.urlopen(urllib.request.Request(q,headers={'User-Agent':'Mozilla/5.0'}),timeout=15))
+                      print('REQUEST',show,'EPISODES' if 'entity=' in q else 'SHOW','COUNT',d.get('resultCount'))
+                      for x in d.get('results',[])[:3]:
+                          print('DATA',{'keys':list(x.keys())[:30],'type':x.get('wrapperType'),'kind':x.get('kind'),'collection':x.get('collectionType'),'collectionId':x.get('collectionId'),'feedUrl':x.get('feedUrl'),'episodeUrl':x.get('episodeUrl'),'trackName':x.get('trackName')})
+                  except Exception as e: print('ERROR',show,type(e).__name__,str(e)[:120])
+          PY
