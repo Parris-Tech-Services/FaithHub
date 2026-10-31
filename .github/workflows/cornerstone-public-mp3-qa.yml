@@ -1,7 +1,7 @@
 name: Cornerstone public MP3 catalogue and playback probe
 on:
   push:
-    branches: [feat/cornerstone-all-public-audio-20261101]
+    branches: [feat/cornerstone-all-public-audio-20261101, fix/cornerstone-public-ui-live-acceptance-20261101]
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,3 +36,4 @@ jobs:
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true' EXIT
           node scripts/cornerstone-public-audio-browser.mjs
+          node scripts/podcast-unified-browser.mjs
