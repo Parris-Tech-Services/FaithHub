@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   witnessed-acceptance:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout the exact FaithHub commit being evaluated
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Parris-Tech-Services/AgentCheck
-          ref: 4d7746d664e4c2d75e64a8436df0bc9b7c9dfc9e
+          ref: 97bc547bb996ceee26570a60376d6ae4df9a3187
           path: .external_verifiers/agentcheck
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -42,6 +42,8 @@ jobs:
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
           echo '.external_verifiers/' >> .git/info/exclude
+      - name: Exercise the repaired verifier integrity regressions
+        run: python -m pytest -q .external_verifiers/agentcheck/tests/test_completion_integrity.py
       - name: Freeze the actual application acceptance contract BEFORE testing
         shell: bash
         run: |
@@ -84,7 +86,7 @@ jobs:
           GH_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python - <<'PY'
-          import json,os
+          import json,os,subprocess
           from pathlib import Path
           from agentwitness.ledger import Ledger
           from agentwitness.models import Provenance
@@ -95,7 +97,9 @@ jobs:
                    any((x.get("type") if isinstance(x,dict) else getattr(x,"type",None))=="pytest"
                        for x in r.environmental_evidence)]
           assert len(proof)==1, "Expected exactly one genuine broker-witnessed pytest invocation"
-          out={"source_sha":os.environ["GH_HEAD_SHA"],"run_url":os.environ["GH_RUN_URL"],
+          verifier_sha=subprocess.check_output(["git","-C",".external_verifiers/agentcheck","rev-parse","HEAD"],text=True).strip()
+          assert verifier_sha=="97bc547bb996ceee26570a60376d6ae4df9a3187", "Unexpected verifier checkout"
+          out={"agentwitness_source_sha":verifier_sha,"source_sha":os.environ["GH_HEAD_SHA"],"run_url":os.environ["GH_RUN_URL"],
                "witness_chain_valid":True,"real_brokered_pytest_receipts":len(proof),
                "test_scope":"FaithHub node suites, Chromium UX and Vite production build",
                "production_pages_deploy":"NOT VERIFIED BY THIS WORKFLOW",
