@@ -13,3 +13,13 @@ Source verification on current `main` 31 October: `assets/psalm-explorer.mjs` gu
 - [ ] **FH-GR-007** [P2 / RELEASE PROVENANCE] Establish PR #5 merge status, default-branch checks, GitHub Pages production SHA and full user journey. **Start:** compare PR branch, `main` and deployed assets. **Dependencies:** FH-GR-002–006. **Acceptance:** exact SHA, passing relevant CI, production link, desktop/mobile manual browser journey, persisted reflection checks; never treat HTTP 200 or green CI as full playtest.
 
 No emails, third-party communications, paid review, secret access, production configuration changes or data migration authorised.
+
+## 6 November 2026 — existing AgentWitness consumer repair
+
+Owner: ChatGPT Work accountability audit, branch `fix/agentwitness-completion-integrity-20261106`, narrow existing CI integration scope. Baseline `0a0361ac356835433e19a40c3bc3bdb06b007fa9`; active PR #21 audio recovery is outside this scope.
+
+The existing acceptance workflow pinned AgentCheck `4d7746d`, so repaired contract, receipt-chain and policy-coverage logic would not execute in FaithHub. Update the existing pin to merged repaired source `97bc547bb996ceee26570a60376d6ae4df9a3187`; run that verifier's actual integrity regressions before the existing witnessed application tests; capture its checked-out SHA in the existing redacted receipt. No application, private-reflection storage, prayer content, protected Windows notary or deployment configuration changes.
+
+Pending exact-head execution of the existing acceptance workflow and independent review before merge. This is source/browser/build CI, not deployed Pages acceptance. Narrow integration claim releases on successful reviewed merge and main readback; other FH-GR tasks remain open.
+
+Runner compatibility: use ubuntu-24.04 for the existing Playwright 1.55 dependency; ubuntu-latest currently selects 26.04, whose package names break the old browser install. This reuses the known supported runner without changing dependencies or app behaviour.
