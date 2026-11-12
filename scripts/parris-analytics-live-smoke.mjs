@@ -12,7 +12,7 @@ const trackerResponse = await request('/tracker.js');
 assert.equal(trackerResponse.status, 200, 'Tracker must be served');
 assert.match(trackerResponse.headers.get('content-type') ?? '', /javascript/i);
 const tracker = await trackerResponse.text();
-for (const marker of ['parris-analytics-consent-v1', 'globalPrivacyControl', 'doNotTrack', 'Decline', 'Analytics settings', 'session_start', 'credentials']) {
+for (const marker of ['parris-analytics-consent-v2:', 'globalPrivacyControl', 'doNotTrack', 'Decline', 'Analytics settings', 'session_start', 'credentials']) {
   assert.ok(tracker.includes(marker), 'Required privacy or tracking marker missing: ' + marker);
 }
 
