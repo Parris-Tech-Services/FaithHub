@@ -55,6 +55,14 @@ const restIdeas = [
   'Worship, church, prayer, or a slow Psalm.',
 ]
 
+const stillnessAnchors = [
+  { ref: 'Psalm 46:10', text: 'Be still, and know that I am God.', note: 'Let your shoulders drop. You do not need to earn God’s attention.' },
+  { ref: 'Matthew 11:28', text: 'Come to me, all you who are weary and burdened, and I will give you rest.', note: 'Bring tired hands as they are. Nothing needs to be finished first.' },
+  { ref: 'Psalm 131:2', text: 'I have calmed and quieted myself…', note: 'Breathe naturally. Quiet companionship with Jesus is enough.' },
+]
+
+const formatStillnessTime = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+
 const blankEntry = (date = todayKey()) => ({
   date,
   rhythms: {},
@@ -93,8 +101,11 @@ export default function App() {
   const [date, setDate] = useState(todayKey())
   const [tab, setTab] = useState('today')
   const [appearance, setAppearance] = useState(() => { try { return ['sanctuary', 'uxpilot'].includes(localStorage.getItem(APPEARANCE_KEY)) ? localStorage.getItem(APPEARANCE_KEY) : 'original' } catch { return 'original' } })
+  const [veilCommunityNotes, setVeilCommunityNotes] = useState(false)
+  const [stillness, setStillness] = useState({ active: false, secondsLeft: null, anchorIndex: 0, finished: false })
 
   const entry = state.entries[date] || blankEntry(date)
+  const presenceMode = state.preferences?.presenceMode !== false
 
   useEffect(() => { try { localStorage.setItem(APPEARANCE_KEY, appearance) } catch {} }, [appearance])
 
@@ -102,10 +113,23 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
 
+  useEffect(() => {
+    if (!stillness.active || stillness.secondsLeft === null) return undefined
+    const timer = setInterval(() => {
+      setStillness((curr) => {
+        if (!curr.active || curr.secondsLeft === null) return curr
+        if (curr.secondsLeft <= 1) return { ...curr, secondsLeft: null, finished: true }
+        return { ...curr, secondsLeft: curr.secondsLeft - 1 }
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [stillness.active, stillness.secondsLeft !== null])
+
   const dayIndex = useMemo(() => Math.abs(Math.floor(new Date(`${date}T00:00:00`).getTime() / 86400000)), [date])
   const scripture = scriptures[dayIndex % scriptures.length]
   const fruit = fruits[dayIndex % fruits.length]
   const familyPrompt = familyPrompts[dayIndex % familyPrompts.length]
+  const stillnessWord = stillnessAnchors[stillness.anchorIndex % stillnessAnchors.length]
 
   const completedRhythms = Object.values(entry.rhythms).filter(Boolean).length
   const reflectionCount = Object.values(entry.reflection).filter(Boolean).length
@@ -135,10 +159,33 @@ export default function App() {
     updateEntry(() => blankEntry(date))
   }
 
+  function setPresenceMode(enabled) {
+    setState((current) => ({
+      ...current,
+      preferences: { ...(current.preferences || {}), presenceMode: Boolean(enabled) },
+    }))
+  }
+
+  function startStillness(minutes = null) {
+    setStillness((curr) => ({
+      ...curr,
+      active: true,
+      finished: false,
+      secondsLeft: typeof minutes === 'number' ? minutes * 60 : null,
+    }))
+  }
+
+  function clearCommunityNotes() {
+    if (!window.confirm('Clear saved family and community notes and check-ins for ' + date + '? This cannot be undone.')) return
+    updateEntry((current) => ({ ...current, community: { church: false, checkedIn: false, served: false, notes: '' } }))
+  }
+
+  const hasSavedSabbath = Boolean(entry.sabbath.planned || entry.sabbath.rested || entry.sabbath.notes)
+
   return (
     <main className={appearance === 'sanctuary' ? 'sanctuary-theme' : appearance === 'uxpilot' ? 'uxpilot-theme' : ''}>
       <section className="appearance-settings" aria-label="FaithHub settings">
-        <details><summary>Settings</summary><div className="appearance-options"><label htmlFor="faithhub-style">Appearance</label><select id="faithhub-style" value={appearance} onChange={(e) => setAppearance(e.target.value)}><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><p>Changes the look, not your prayers, reflections or saved entries.</p></div></details>
+        <details><summary>Settings</summary><div className="appearance-options"><label htmlFor="faithhub-style">Appearance</label><select id="faithhub-style" value={appearance} onChange={(e) => setAppearance(e.target.value)}><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><label className="presence-row" htmlFor="faithhub-presence-mode"><input type="checkbox" id="faithhub-presence-mode" checked={presenceMode} onChange={(e) => setPresenceMode(e.target.checked)} /><span>Presence over performance (hide progress bar &amp; counts)</span></label><p>Changes the look, not your prayers, reflections or saved entries.</p></div></details>
       </section>
       {appearance === 'uxpilot' && <header className="uxpilot-header"><a href="./" aria-label="FaithHub home">FaithHub</a><div><button type="button" onClick={() => document.querySelector('.appearance-settings details')?.setAttribute('open', '')} aria-label="Open appearance settings">Settings</button><button type="button" onClick={() => document.querySelector('.toolbar')?.scrollIntoView({ behavior: 'smooth' })} aria-label="Go to navigation">Menu</button></div></header>}
       <section className="hero">
@@ -150,8 +197,8 @@ export default function App() {
         <aside className="posture-card">
           <p>Today’s posture</p>
           <h2>Abide before you strive.</h2>
-          <div className="meter"><span style={{ width: `${progress}%` }} /></div>
-          <small>This bar is not a grade. It just shows how much space you’ve made to notice God today.</small>
+          {!presenceMode && <div className="meter"><span style={{ width: `${progress}%` }} /></div>}
+          <small>{presenceMode ? 'Presence over performance: nothing to score, complete, or catch up on today.' : 'This bar is not a grade. It just shows how much space you’ve made to notice God today.'}</small>
         </aside>
       </section>
 
@@ -185,14 +232,18 @@ export default function App() {
             <h2>{fruit.name}</h2>
             <p>{fruit.prompt}</p>
             <p className="soft-note"><strong>Tiny practice:</strong> {fruit.practice}</p>
+            <div className="stillness-actions">
+              <button type="button" onClick={() => { setTab('sabbath'); startStillness(null) }}>Enter quiet stillness (unlogged)</button>
+            </div>
           </article>
           <article className="card wide">
             <div className="section-heading">
               <div>
                 <p className="eyebrow">Today’s rhythm</p>
                 <h2>Small faithful openings</h2>
+                <p className="muted">Receive whichever moment helps today—or leave every box untouched. Presence needs no checklist.</p>
               </div>
-              <span className="pill">{completedRhythms} of {rhythms.length} touched today</span>
+              {!presenceMode && <span className="pill">{completedRhythms} of {rhythms.length} touched today</span>}
             </div>
             <div className="rhythm-grid">
               {rhythms.map((rhythm) => (
@@ -255,7 +306,19 @@ export default function App() {
             <CheckCard checked={entry.community.checkedIn} onChange={(v) => setNested('community', 'checkedIn', v)} title="Checked in with someone" subtitle="A text, call, prayer, meal, or honest conversation." />
             <CheckCard checked={entry.community.served} onChange={(v) => setNested('community', 'served', v)} title="Served quietly" subtitle="A small act of love without needing recognition." />
           </article>
-          <article className="card wide"><h3>Notes on family, church, or community</h3><TextArea value={entry.community.notes} onChange={(v) => setNested('community', 'notes', v)} placeholder="Who needs care? Where did we experience connection? Is there anyone to forgive, bless, or reach out to?" /></article>
+          <article className="card wide">
+            <h3>Notes on family, church, or community</h3>
+            <p className="consent-banner"><strong>Consent &amp; shared-screen care:</strong> Use first initials or general descriptions rather than identifiable confidences about family, children, or church members without their permission. Saved notes stay unencrypted in this browser and in downloaded JSON backups.</p>
+            {veilCommunityNotes ? (
+              <p role="status">Family and community notes are hidden on screen for shared-device privacy.</p>
+            ) : (
+              <TextArea value={entry.community.notes} onChange={(v) => setNested('community', 'notes', v)} placeholder="Who needs care? Where did we experience connection? Is there anyone to forgive, bless, or reach out to?" />
+            )}
+            <div className="consent-actions">
+              <button type="button" aria-pressed={veilCommunityNotes} onClick={() => setVeilCommunityNotes((v) => !v)}>{veilCommunityNotes ? 'Show family & community notes' : 'Hide notes on shared screen'}</button>
+              <button type="button" onClick={clearCommunityNotes}>Clear family &amp; community notes</button>
+            </div>
+          </article>
         </section>
       )}
 
@@ -264,21 +327,48 @@ export default function App() {
           <article className="card feature">
             <p className="eyebrow">Sabbath / rest</p>
             <h2>Practise being loved without producing.</h2>
-            <p>Sabbath is not another productivity system. It is resistance against hurry, control, and the lie that you are only valuable when useful.</p>
-            <CheckCard checked={entry.sabbath.planned} onChange={(v) => setNested('sabbath', 'planned', v)} title="I made room for rest" subtitle="Even a small protected window counts." />
-            <CheckCard checked={entry.sabbath.rested} onChange={(v) => setNested('sabbath', 'rested', v)} title="I actually received some rest" subtitle="Notice what was life-giving, not what was impressive." />
+            <p>Sabbath is not another productivity system. Rest and silence here require no logging, no completion, and zero browser storage.</p>
+            <div className="stillness-actions">
+              <button type="button" className={stillness.active && stillness.secondsLeft === null && !stillness.finished ? 'active' : ''} onClick={() => startStillness(null)}>Sit in open silence</button>
+              <button type="button" onClick={() => startStillness(1)}>1 min quiet pause</button>
+              <button type="button" onClick={() => startStillness(3)}>3 min quiet pause</button>
+              <button type="button" onClick={() => startStillness(5)}>5 min quiet pause</button>
+              <button type="button" onClick={() => setStillness((curr) => ({ ...curr, active: true, anchorIndex: (curr.anchorIndex + 1) % stillnessAnchors.length }))}>Another Scripture word</button>
+            </div>
+            {stillness.active && (
+              <div className="stillness-box" role="region" aria-label="Quiet stillness" aria-live="polite">
+                <p className="eyebrow">{stillnessWord.ref}</p>
+                <blockquote>“{stillnessWord.text}”</blockquote>
+                <p>{stillnessWord.note}</p>
+                {stillness.secondsLeft !== null && <p className="stillness-time">{formatStillnessTime(stillness.secondsLeft)}</p>}
+                <p className="muted">{stillness.finished ? 'Peace be with you. Step back into your day gently—nothing was logged or scored.' : 'Unlogged stillness: nothing is being saved or counted.'}</p>
+                <div className="stillness-actions">
+                  <button type="button" onClick={() => setStillness((curr) => ({ ...curr, active: false, secondsLeft: null, finished: false }))}>Step out quietly</button>
+                </div>
+              </div>
+            )}
           </article>
           <article className="card">
-            <h2>Rest ideas</h2>
+            <h2>Rest ideas (no check-in needed)</h2>
+            <p>Step away from the screen whenever you are ready. Rest counts even if you never record anything here.</p>
             <ul className="rest-list">{restIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul>
           </article>
-          <article className="card wide"><h3>Rest notes</h3><TextArea value={entry.sabbath.notes} onChange={(v) => setNested('sabbath', 'notes', v)} placeholder="What helped me slow down? What made rest hard? What might need to change next Sabbath?" /></article>
+          <article className="card wide">
+            <details className="optional-sabbath" open={hasSavedSabbath || undefined}>
+              <summary>Optional private Sabbath reflection (never required for rest)</summary>
+              <p className="muted" style={{ marginTop: '10px' }}>Only use these if noticing helps you remember grace; leaving them blank is welcome.</p>
+              <CheckCard checked={entry.sabbath.planned} onChange={(v) => setNested('sabbath', 'planned', v)} title="I made room for rest" subtitle="Even a small protected window counts." />
+              <CheckCard checked={entry.sabbath.rested} onChange={(v) => setNested('sabbath', 'rested', v)} title="I actually received some rest" subtitle="Notice what was life-giving, not what was impressive." />
+              <h3 style={{ marginTop: '14px' }}>Rest notes</h3>
+              <TextArea value={entry.sabbath.notes} onChange={(v) => setNested('sabbath', 'notes', v)} placeholder="What helped me slow down? What made rest hard? What might need to change next Sabbath?" />
+            </details>
+          </article>
         </section>
       )}
 
       <footer>
-        <span>Saved locally in this browser.</span>
-        <span>No streaks. No guilt engine. Just daily return.</span>
+        <span>Saved locally in this browser (unencrypted). <a href="backup.html">Back up or restore</a> · <a href="docs/privacy-consent-audit-2026-11-14.md">Privacy &amp; consent boundaries</a></span>
+        <span>No streaks. No guilt engine. Presence over performance.</span>
       </footer>
       <p className="muted" style={{ fontSize: ".72rem", marginTop: "14px" }}>Scripture taken from the Holy Bible, NEW INTERNATIONAL VERSION®, NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.® Used by permission. All rights reserved worldwide.</p>
     </main>

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
 import {INVENTORY,makeBackup,parseBackup,inventoryStorage,planRestore,restore,validateValue,MAX_FILE_BYTES} from '../assets/backup-centre.mjs';
 
 class Storage {
@@ -17,12 +17,14 @@ const fixture=[
  ['faithhub:prayer-shelf:v1',JSON.stringify({version:1,resources:[]})],
  ['faithhub:scripture-atlas:v1',JSON.stringify({notes:{},bookmarks:[]})],
  ['faithhub-intercessions-v1',JSON.stringify([{id:'a',name:'Initials AB',request:'Personal request'}])],
- ['faithhub-podcast-selected-v2','apple:teresa-2026'],
+ ['faithhub-cornerstone-journal-v1',JSON.stringify({romans:'Private study reflection'})],
+ ['faithhub-cornerstone-drive-private-v1',JSON.stringify([{driveId:'1aBcDeFgHiJkLmNoPqRsTuVwXyZ',title:'Retreat talk',folder:'2024'}])],
+ ['faithhub-podcast-selected-v2','cornerstone:episode:293630407-1'],
  ['rule-of-life-companion-v1',JSON.stringify({entries:{}})]
 ];
-test('inventory contains all 12 existing storage writers, no duplicate IDs',()=>{
-  assert.equal(INVENTORY.length,12);
-  assert.equal(new Set(INVENTORY.map(x=>x.key)).size,12);
+test('inventory contains all 14 existing storage writers, no duplicate IDs, and no unindexed faithhub keys',()=>{
+  assert.equal(INVENTORY.length,14);
+  assert.equal(new Set(INVENTORY.map(x=>x.key)).size,14);
   const expected=INVENTORY.map(x=>x.key);
   for(const [path,key] of [
     ['index.html','faithhub-rule-of-life-v2'],
@@ -34,12 +36,25 @@ test('inventory contains all 12 existing storage writers, no duplicate IDs',()=>
     ['assets/scripture-atlas.mjs','faithhub:scripture-atlas:v1'],
     ['assets/psalm-explorer-data.mjs','faithhub-psalm-explore-notes-v1'],
     ['assets/intercession.mjs','faithhub-intercessions-v1'],
+    ['cornerstone-teachings.html','faithhub-cornerstone-journal-v1'],
+    ['podcasts.html','faithhub-cornerstone-drive-private-v1'],
     ['podcasts.html','faithhub-podcast-selected-v2'],
     ['podcasts.html','faithhub-local-podcast-v1'],
     ['src/App.jsx','rule-of-life-companion-v1']
   ]){
     assert.ok(expected.includes(key),key);
     assert.ok(readFileSync(new URL('../'+path,import.meta.url),'utf8').includes(key),path);
+  }
+  const rootUrl=new URL('../',import.meta.url);
+  for(const dir of ['','assets/','src/']){
+    for(const file of readdirSync(new URL(dir,rootUrl))){
+      if(!/\.(html|mjs|jsx)$/.test(file))continue;
+      const src=readFileSync(new URL(dir+file,rootUrl),'utf8');
+      for(const m of src.matchAll(/(?:localStorage\.(?:getItem|setItem|removeItem)\s*\(\s*|(?:STORE|STORAGE|KEY|STORAGE_KEY|APPEARANCE_KEY|THEME_KEY|THEME_STORAGE|APPEARANCE_STORAGE|PRIVATE_STORE|LEGACY_STORAGE|key)\s*=\s*)['"](faithhub[-:][a-zA-Z0-9_:-]+)['"]/g)){
+        const k=m[1];
+        assert.ok(expected.includes(k),`Unindexed faithhub localStorage key ${k} in ${dir}${file}`);
+      }
+    }
   }
 });
 test('export restores exact existing data without modifying input',()=>{

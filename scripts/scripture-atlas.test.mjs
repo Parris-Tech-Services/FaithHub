@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {assertOnlyApprovedRemoteScripts} from "./assert-allowed-analytics.mjs";
 import {readFileSync} from "node:fs";
 import {spawnSync} from "node:child_process";
+import {fileURLToPath} from "node:url";
 import test from "node:test";
 import {PASSAGES,PLANS,THEMES,validateAtlas} from "../assets/scripture-atlas-data.mjs";
 const read = name => readFileSync(new URL("../"+name,import.meta.url),"utf8");
@@ -56,7 +57,7 @@ test("Journal and personal marks persist only through explicit user actions",()=
 });
 test("Application scripts are syntactically valid as browser modules",()=>{
  for(const file of ["assets/scripture-atlas.mjs","assets/scripture-atlas-data.mjs"]){
-  const result=spawnSync(process.execPath,["--check",new URL("../"+file,import.meta.url).pathname],{encoding:"utf8"});
+  const result=spawnSync(process.execPath,["--check",fileURLToPath(new URL("../"+file,import.meta.url))],{encoding:"utf8"});
   assert.equal(result.status,0,file+": "+result.stderr);
  }
 });

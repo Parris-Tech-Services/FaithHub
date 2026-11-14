@@ -14,6 +14,8 @@ export const INVENTORY=Object.freeze([
   {key:'faithhub:scripture-atlas:v1',label:'Scripture Atlas notes and bookmarks',kind:'object'},
   {key:'faithhub-psalm-explore-notes-v1',label:'Psalms private notes',kind:'object'},
   {key:'faithhub-intercessions-v1',label:'Private intercession cards',kind:'array'},
+  {key:'faithhub-cornerstone-journal-v1',label:'Cornerstone study reflections',kind:'object'},
+  {key:'faithhub-cornerstone-drive-private-v1',label:'Private Drive audio catalogue',kind:'array'},
   {key:'faithhub-podcast-selected-v2',label:'Selected podcast',kind:'podcast'},
   {key:'faithhub-local-podcast-v1',label:'Legacy podcast selection',kind:'legacyPodcast'},
   {key:'rule-of-life-companion-v1',label:'Secondary FaithHub app data',kind:'object'}
@@ -37,7 +39,7 @@ export function validateValue(meta,value){
     case 'theme': if(!['light','dark'].includes(value))throw Error('Unknown light/dark setting');break;
     case 'appearance':if(!['original','sanctuary','uxpilot'].includes(value))throw Error('Unknown appearance style');break;
     case 'anchor':if(!['kettle','lunch','home','bed'].includes(value))throw Error('Unknown daily prayer anchor');break;
-    case 'podcast':if(!/^(spotify|apple|audio|external):[a-zA-Z0-9_-]{1,90}$/.test(value))throw Error('Unknown podcast selection');break;
+    case 'podcast':if(!/^(?:(?:spotify|apple|audio|external):[a-zA-Z0-9_-]{1,90}|cornerstone:(?:episode:)?[a-zA-Z0-9_:-]{1,120}|(?:public|private):drive:[A-Za-z0-9_-]{15,120})$/.test(value))throw Error('Unknown podcast selection');break;
     case 'legacyPodcast':if(!/^\d{1,3}$/.test(value)||Number(value)>24)throw Error('Invalid legacy podcast number');break;
     default:{
       let data;

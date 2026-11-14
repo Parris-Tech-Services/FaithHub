@@ -16,7 +16,7 @@ try{
     localStorage.setItem('faithhub-intercessions-v1',JSON.stringify([{id:'test-ci',name:'Imaginary A',request:'Synthetic need'}]));
   });
   await page.reload({waitUntil:'domcontentloaded'});
-  await page.getByText('2 of 12 known data types currently saved').waitFor();
+  await page.getByText('2 of 14 known data types currently saved').waitFor();
   const dl=page.waitForEvent('download');
   await page.locator('#export-all').click();
   const download=await dl;
@@ -31,7 +31,7 @@ try{
     localStorage.removeItem('faithhub-intercessions-v1');
   });
   await page.reload({waitUntil:'domcontentloaded'});
-  assert.match(await page.locator('#data-count').textContent(),/0 of 12/);
+  assert.match(await page.locator('#data-count').textContent(),/0 of 14/);
   await page.locator('#import-all').setInputFiles({name:'faithhub-original.json',mimeType:'application/json',buffer:Buffer.from(raw)});
   await page.getByText(/This mode would restore 2/).waitFor();
   assert.equal(await page.locator('#restore-all').isEnabled(),true);

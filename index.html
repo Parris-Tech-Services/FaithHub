@@ -269,7 +269,17 @@
       .resource-link-grid .study-link { width: 100%; }
       .settings-slot { grid-column: 1 / -1; justify-content: flex-start; }
       .date-control input { width: 100%; }
+      .stillness-actions button, .consent-actions button { width: 100%; }
     }
+    [hidden] { display: none !important; }
+    .presence-row { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 4px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .presence-row input { width: 20px; height: 20px; min-height: 20px; padding: 0; margin-top: 2px; flex: none; accent-color: var(--fg); }
+    .stillness-actions, .consent-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .stillness-box { border: 2px solid var(--border); border-radius: 18px; padding: 16px; margin-top: 12px; }
+    .stillness-time { font-size: 1.75rem; font-weight: 800; letter-spacing: 0.04em; margin: 6px 0; color: var(--fg); }
+    .consent-banner { border-left: 4px solid var(--border); padding: 8px 12px; margin: 8px 0 12px; font-size: 0.92rem; }
+    .optional-sabbath { border: 2px solid var(--border); border-radius: 20px; padding: 16px; background: var(--card); }
+    .optional-sabbath summary { cursor: pointer; font-weight: 800; min-height: 44px; display: flex; align-items: center; }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .meter span { transition: none; }
@@ -347,7 +357,7 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
 </head>
 <body>
   <a class="skip-link" href="#app">Skip to daily content</a>
-  <main><section class="appearance-settings" aria-label="FaithHub settings"><details id="appearance-details"><summary>Appearance</summary><div class="appearance-options"><label for="faithhub-style">Visual style</label><select id="faithhub-style"><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><p>Your prayer and reflection entries stay unchanged.</p></div></details></section>
+  <main><section class="appearance-settings" aria-label="FaithHub settings"><details id="appearance-details"><summary>Appearance</summary><div class="appearance-options"><label for="faithhub-style">Visual style</label><select id="faithhub-style"><option value="original">Original FaithHub</option><option value="sanctuary">Sanctuary · Quiet place</option><option value="uxpilot">FaithHub Editorial · UX Pilot</option></select><label class="presence-row" for="faithhub-presence-mode"><input type="checkbox" id="faithhub-presence-mode" checked /><span>Presence over performance (hide progress bar &amp; counts)</span></label><p>Your prayer and reflection entries stay unchanged.</p></div></details></section>
     <section class="hero">
       <div>
         <p class="eyebrow">FaithHub / Rule of Life Companion</p>
@@ -358,8 +368,8 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
       <aside class="posture">
         <p class="eyebrow">Today’s posture</p>
         <h2>Abide before you strive.</h2>
-        <div class="meter"><span id="meter"></span></div>
-        <small>This is not a grade. It just shows how much space you’ve made to notice God today.</small>
+        <div class="meter" id="meterWrap" hidden><span id="meter"></span></div>
+        <small id="postureNote">Presence over performance: nothing to score, complete, or catch up on today.</small>
       </aside>
     </section>
 
@@ -395,8 +405,8 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
     <div id="app" role="tabpanel" aria-labelledby="tab-today" tabindex="0"></div>
 
     <footer>
-      <span>Saved locally in this browser.</span>
-      <span>No streaks. No guilt engine. Just daily return.</span>
+      <span>Saved locally in this browser (unencrypted). <a href="backup.html">Back up or restore</a> · <a href="docs/privacy-consent-audit-2026-11-14.md">Privacy &amp; consent boundaries</a></span>
+      <span>No streaks. No guilt engine. Presence over performance.</span>
     </footer>
     <p style="font-size:0.72rem;margin:14px 4px;color:var(--muted)">Scripture taken from the Holy Bible, NEW INTERNATIONAL VERSION®, NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.® Used by permission. All rights reserved worldwide.</p>
   </main>
@@ -457,10 +467,75 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
     ];
 
     const tabs = [['today', 'Today'], ['prayer', 'Prayer'], ['reflection', 'Reflection'], ['family', 'Family'], ['sabbath', 'Sabbath']];
+    const stillnessAnchors = [
+      ['Psalm 46:10', 'Be still, and know that I am God.', 'Let your shoulders drop. You do not need to earn God’s attention.'],
+      ['Matthew 11:28', 'Come to me, all you who are weary and burdened, and I will give you rest.', 'Bring tired hands as they are. Nothing needs to be finished first.'],
+      ['Psalm 131:2', 'I have calmed and quieted myself…', 'Breathe naturally. Quiet companionship with Jesus is enough.']
+    ];
     let tab = 'today';
     let date = todayKey();
     let theme = localStorage.getItem(THEME_STORAGE) || 'light';
     let state = loadState();
+    let veilCommunityNotes = false;
+    let stillness = { active: false, secondsLeft: null, anchorIndex: 0, finished: false };
+    let stillnessTimer = null;
+
+    function isPresenceMode() {
+      return state.preferences?.presenceMode !== false;
+    }
+
+    function setPresenceMode(enabled) {
+      state.preferences = { ...(state.preferences || {}), presenceMode: Boolean(enabled) };
+      saveState();
+      updateMeter();
+      render();
+    }
+
+    function formatStillnessTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return String(m) + ':' + String(s).padStart(2, '0');
+    }
+
+    function stopStillnessInterval() {
+      if (stillnessTimer) {
+        clearInterval(stillnessTimer);
+        stillnessTimer = null;
+      }
+    }
+
+    function startStillness(minutes) {
+      stopStillnessInterval();
+      stillness.active = true;
+      stillness.finished = false;
+      stillness.secondsLeft = typeof minutes === 'number' ? minutes * 60 : null;
+      if (stillness.secondsLeft !== null) {
+        stillnessTimer = setInterval(() => {
+          if (stillness.secondsLeft === null) return;
+          stillness.secondsLeft = Math.max(0, stillness.secondsLeft - 1);
+          const timeEl = document.getElementById('stillnessTime');
+          const statusEl = document.getElementById('stillnessStatus');
+          if (stillness.secondsLeft <= 0) {
+            stopStillnessInterval();
+            stillness.secondsLeft = null;
+            stillness.finished = true;
+            if (timeEl) timeEl.hidden = true;
+            if (statusEl) statusEl.textContent = 'Peace be with you. Step back into your day gently—nothing was logged or scored.';
+          } else if (timeEl) {
+            timeEl.textContent = formatStillnessTime(stillness.secondsLeft);
+          }
+        }, 1000);
+      }
+      render();
+    }
+
+    function endStillness() {
+      stopStillnessInterval();
+      stillness.active = false;
+      stillness.secondsLeft = null;
+      stillness.finished = false;
+      render();
+    }
 
     function blank(d = date) {
       return {
@@ -482,10 +557,10 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
     function dayIndex() { return Math.abs(Math.floor(Date.parse(date + 'T00:00:00Z') / 86400000)); }
     function esc(value = '') { return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;'); }
 
-    function applyTheme() {
+    function applyTheme(persist = false) {
       document.body.classList.toggle('dark', theme === 'dark');
       document.getElementById('themeBtn').textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
-      localStorage.setItem(THEME_STORAGE, theme);
+      if (persist) localStorage.setItem(THEME_STORAGE, theme);
     }
 
     function setReflection(key, value) { entry().reflection[key] = value; saveState(); updateMeter(); }
@@ -512,6 +587,15 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
       const reflectionCount = Object.values(e.reflection).filter(Boolean).length;
       const progress = Math.min(100, Math.round(((rhythmCount + Math.min(reflectionCount, 3)) / 7) * 100));
       document.getElementById('meter').style.width = progress + '%';
+      const quiet = isPresenceMode();
+      const wrap = document.getElementById('meterWrap');
+      const note = document.getElementById('postureNote');
+      const toggle = document.getElementById('faithhub-presence-mode');
+      if (wrap) wrap.hidden = quiet;
+      if (toggle) toggle.checked = quiet;
+      if (note) note.textContent = quiet
+        ? 'Presence over performance: nothing to score, complete, or catch up on today.'
+        : 'This is not a grade. It just shows how much space you’ve made to notice God today.';
     }
 
     function render() {
@@ -524,10 +608,11 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
       const scripture = scriptures[dayIndex() % scriptures.length];
       const fruit = fruits[dayIndex() % fruits.length];
       const familyPrompt = familyPrompts[dayIndex() % familyPrompts.length];
+      const stillnessWord = stillnessAnchors[stillness.anchorIndex % stillnessAnchors.length];
       let html = '';
 
       if (tab === 'today') {
-        html = `<section class="grid"><article class="card"><p class="eyebrow">Daily Scripture</p><h2>${scripture[0]}</h2><blockquote>“${scripture[1]}”</blockquote><p><strong>${scripture[2]}</strong></p>${scripture[3] ? `<p><a href="${scripture[3]}" target="_blank" rel="noopener noreferrer">Read the full passage (NIV)</a></p>` : ''}</article><article class="card"><p class="eyebrow">Fruit for today</p><h2>${fruit[0]}</h2><p>${fruit[1]}</p><p><strong>Tiny practice:</strong> ${fruit[2]}</p></article><article class="card wide"><p class="eyebrow">Today’s rhythm</p><h2>Small faithful openings</h2><div class="rhythm-grid">${rhythms.map(r => `<button class="rhythm ${e.rhythms[r[0]] ? 'active' : ''}" data-rhythm="${r[0]}"><span class="icon">${r[1]}</span><strong>${r[2]}</strong><br><small>${r[3]}</small><p>${r[4]}</p></button>`).join('')}</div></article></section>`;
+        html = `<section class="grid"><article class="card"><p class="eyebrow">Daily Scripture</p><h2>${scripture[0]}</h2><blockquote>“${scripture[1]}”</blockquote><p><strong>${scripture[2]}</strong></p>${scripture[3] ? `<p><a href="${scripture[3]}" target="_blank" rel="noopener noreferrer">Read the full passage (NIV)</a></p>` : ''}</article><article class="card"><p class="eyebrow">Fruit for today</p><h2>${fruit[0]}</h2><p>${fruit[1]}</p><p><strong>Tiny practice:</strong> ${fruit[2]}</p><div class="stillness-actions"><button type="button" data-open-stillness="true">Enter quiet stillness (unlogged)</button></div></article><article class="card wide"><p class="eyebrow">Today’s rhythm</p><h2>Small faithful openings</h2><p>Receive whichever moment helps today—or leave every box untouched. Presence needs no checklist.</p><div class="rhythm-grid">${rhythms.map(r => `<button class="rhythm ${e.rhythms[r[0]] ? 'active' : ''}" data-rhythm="${r[0]}"><span class="icon">${r[1]}</span><strong>${r[2]}</strong><br><small>${r[3]}</small><p>${r[4]}</p></button>`).join('')}</div></article></section>`;
       }
 
       if (tab === 'prayer') {
@@ -539,11 +624,12 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
       }
 
       if (tab === 'family') {
-        html = `<section class="grid"><article class="card"><p class="eyebrow">Family prayer prompt</p><h2>${familyPrompt}</h2><p>Keep it short enough that the family can actually receive it. One honest sentence can be enough.</p></article><article class="card"><h2>Community rhythms</h2><p>Faith forms in ordinary belonging: worship, meals, serving, reconciliation, and being known.</p>${check('community', 'church', 'Church / gathered worship', 'A rhythm of receiving and belonging.')}${check('community', 'checkedIn', 'Checked in with someone', 'A text, call, prayer, meal, or honest conversation.')}${check('community', 'served', 'Served quietly', 'A small act of love without needing recognition.')}</article><article class="card wide"><h3>Notes on family, church, or community</h3><textarea data-nested="community:notes" placeholder="Who needs care? Where did we experience connection? Is there anyone to forgive, bless, or reach out to?">${esc(e.community.notes)}</textarea></article></section>`;
+        html = `<section class="grid"><article class="card"><p class="eyebrow">Family prayer prompt</p><h2>${familyPrompt}</h2><p>Keep it short enough that the family can actually receive it. One honest sentence can be enough.</p></article><article class="card"><h2>Community rhythms</h2><p>Faith forms in ordinary belonging: worship, meals, serving, reconciliation, and being known.</p>${check('community', 'church', 'Church / gathered worship', 'A rhythm of receiving and belonging.')}${check('community', 'checkedIn', 'Checked in with someone', 'A text, call, prayer, meal, or honest conversation.')}${check('community', 'served', 'Served quietly', 'A small act of love without needing recognition.')}</article><article class="card wide"><h3>Notes on family, church, or community</h3><p class="consent-banner"><strong>Consent &amp; shared-screen care:</strong> Use first initials or general descriptions rather than identifiable confidences about family, children, or church members without their permission. Saved notes stay unencrypted in this browser and in downloaded JSON backups.</p>${veilCommunityNotes ? `<p role="status">Family and community notes are hidden on screen for shared-device privacy.</p>` : ''}<textarea data-nested="community:notes" ${veilCommunityNotes ? 'hidden' : ''} placeholder="Who needs care? Where did we experience connection? Is there anyone to forgive, bless, or reach out to?">${esc(e.community.notes)}</textarea><div class="consent-actions"><button type="button" id="veilCommunityBtn" aria-pressed="${veilCommunityNotes}">${veilCommunityNotes ? 'Show family &amp; community notes' : 'Hide notes on shared screen'}</button><button type="button" id="clearCommunityBtn">Clear family &amp; community notes</button></div></article></section>`;
       }
 
       if (tab === 'sabbath') {
-        html = `<section class="grid"><article class="card"><p class="eyebrow">Sabbath / rest</p><h2>Practise being loved without producing.</h2><p>Sabbath is not another productivity system. It is resistance against hurry, control, and the lie that you are only valuable when useful.</p>${check('sabbath', 'planned', 'I made room for rest', 'Even a small protected window counts.')}${check('sabbath', 'rested', 'I actually received some rest', 'Notice what was life-giving, not what was impressive.')}</article><article class="card"><h2>Rest ideas</h2><ul class="rest-list">${restIdeas.map(x => `<li>${x}</li>`).join('')}</ul></article><article class="card wide"><h3>Rest notes</h3><textarea data-nested="sabbath:notes" placeholder="What helped me slow down? What made rest hard? What might need to change next Sabbath?">${esc(e.sabbath.notes)}</textarea></article></section>`;
+        const hasSavedSabbath = Boolean(e.sabbath.planned || e.sabbath.rested || e.sabbath.notes);
+        html = `<section class="grid"><article class="card" id="stillness-card"><p class="eyebrow">Sabbath / rest</p><h2>Practise being loved without producing.</h2><p>Sabbath is not another productivity system. Rest and silence here require no logging, no completion, and zero browser storage.</p><div class="stillness-actions"><button type="button" class="${stillness.active && stillness.secondsLeft === null && !stillness.finished ? 'active' : ''}" data-stillness="open">Sit in open silence</button><button type="button" data-stillness="1">1 min quiet pause</button><button type="button" data-stillness="3">3 min quiet pause</button><button type="button" data-stillness="5">5 min quiet pause</button><button type="button" id="stillnessWordBtn">Another Scripture word</button></div>${stillness.active ? `<div class="stillness-box" role="region" aria-label="Quiet stillness" aria-live="polite"><p class="eyebrow">${stillnessWord[0]}</p><blockquote>“${stillnessWord[1]}”</blockquote><p>${stillnessWord[2]}</p><p id="stillnessTime" class="stillness-time" ${stillness.secondsLeft === null ? 'hidden' : ''}>${stillness.secondsLeft !== null ? formatStillnessTime(stillness.secondsLeft) : ''}</p><p id="stillnessStatus">${stillness.finished ? 'Peace be with you. Step back into your day gently—nothing was logged or scored.' : 'Unlogged stillness: nothing is being saved or counted.'}</p><div class="stillness-actions"><button type="button" id="endStillnessBtn">Step out quietly</button></div></div>` : ''}</article><article class="card"><h2>Rest ideas (no check-in needed)</h2><p>Step away from the screen whenever you are ready. Rest counts even if you never record anything here.</p><ul class="rest-list">${restIdeas.map(x => `<li>${x}</li>`).join('')}</ul></article><article class="card wide"><details class="optional-sabbath" id="sabbathOptionalLog" ${hasSavedSabbath ? 'open' : ''}><summary>Optional private Sabbath reflection (never required for rest)</summary><p style="margin-top:10px">Only use these if noticing helps you remember grace; leaving them blank is welcome.</p>${check('sabbath', 'planned', 'I made room for rest', 'Even a small protected window counts.')}${check('sabbath', 'rested', 'I actually received some rest', 'Notice what was life-giving, not what was impressive.')}<h3 style="margin-top:14px">Rest notes</h3><textarea data-nested="sabbath:notes" placeholder="What helped me slow down? What made rest hard? What might need to change next Sabbath?">${esc(e.sabbath.notes)}</textarea></details></article></section>`;
       }
 
       document.getElementById('app').innerHTML = html;
@@ -585,7 +671,35 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
         entry()[section][key] = element.value;
         saveState();
       });
+      document.querySelectorAll('[data-open-stillness]').forEach(button => button.onclick = () => {
+        tab = 'sabbath';
+        startStillness(null);
+        document.getElementById('tab-sabbath')?.focus();
+      });
+      document.querySelectorAll('[data-stillness]').forEach(button => button.onclick = () => {
+        const raw = button.dataset.stillness;
+        startStillness(raw === 'open' ? null : Number(raw));
+      });
+      const wordBtn = document.getElementById('stillnessWordBtn');
+      if (wordBtn) wordBtn.onclick = () => {
+        stillness.anchorIndex = (stillness.anchorIndex + 1) % stillnessAnchors.length;
+        if (!stillness.active) stillness.active = true;
+        render();
+      };
+      const endBtn = document.getElementById('endStillnessBtn');
+      if (endBtn) endBtn.onclick = () => endStillness();
+      const veilBtn = document.getElementById('veilCommunityBtn');
+      if (veilBtn) veilBtn.onclick = () => { veilCommunityNotes = !veilCommunityNotes; render(); };
+      const clearCommunityBtn = document.getElementById('clearCommunityBtn');
+      if (clearCommunityBtn) clearCommunityBtn.onclick = () => {
+        if (!window.confirm('Clear saved family and community notes and check-ins for ' + date + '? This cannot be undone.')) return;
+        entry().community = { church: false, checkedIn: false, served: false, notes: '' };
+        saveState();
+        render();
+      };
     }
+
+    document.getElementById('faithhub-presence-mode').onchange = event => setPresenceMode(event.target.checked);
 
     document.getElementById('date').onchange = event => { date = event.target.value; render(); };
     document.getElementById('todayBtn').onclick = () => { date = todayKey(); render(); };
@@ -595,18 +709,18 @@ body:is(.style-sanctuary,.style-editorial) .rhythm-grid .rhythm.active::after{co
       saveState();
       render();
     };
-    document.getElementById('themeBtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); };
+    document.getElementById('themeBtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(true); };
 
     const appearanceSelect = document.getElementById('faithhub-style');
     const APPEARANCE_STORAGE = 'faithhub-appearance-v1';
-    function applyAppearance(value) {
+    function applyAppearance(value, persist = false) {
       const selected = ['original', 'sanctuary', 'uxpilot'].includes(value) ? value : 'original';
       document.body.classList.toggle('style-sanctuary', selected === 'sanctuary');
       document.body.classList.toggle('style-editorial', selected === 'uxpilot');
       appearanceSelect.value = selected;
-      localStorage.setItem(APPEARANCE_STORAGE, selected);
+      if (persist) localStorage.setItem(APPEARANCE_STORAGE, selected);
     }
-    appearanceSelect.addEventListener('change', event => { applyAppearance(event.target.value); document.getElementById('appearance-details').open = false; });
+    appearanceSelect.addEventListener('change', event => { applyAppearance(event.target.value, true); document.getElementById('appearance-details').open = false; });
     applyAppearance(localStorage.getItem(APPEARANCE_STORAGE) || 'original');
     render();
   </script>

@@ -75,11 +75,13 @@ https://YOUR_USERNAME.github.io/rule-of-life-companion/
 
 - Entries are saved in local browser storage only.
 - There are no streaks or scores.
-- The progress bar is intentionally framed as “space made to notice God”, not spiritual performance.
+- **Presence over performance (default, 14 November 2026):** Progress bars and rhythm completion counts are hidden by default across both `index.html` and `src/App.jsx` (`VAL-001`), with an optional toggle in Appearance/Settings if a visual “space made” bar is ever wanted.
+- **Unlogged Sabbath & silence flows (14 November 2026):** The `Sabbath` tab (and `Today` shortcut) offers open silence, 1/3/5-minute quiet pauses, and Scripture stillness anchors (`VAL-002`) that write nothing to `localStorage` and require zero checkboxes or logging.
+- **[Privacy, export, analytics & consent boundary audit](docs/privacy-consent-audit-2026-11-14.md) (`VAL-003`):** Full 14-key storage inventory, `parris-analytics` opt-in verification, and family/community consent + shared-screen veil safeguards.
 
-## Protect and recover FaithHub browser data (31 October 2026)
+## Protect and recover FaithHub browser data (31 October 2026 · updated 14 November 2026)
 
-- **[Backup centre](backup.html):** audited inventory of 12 browser storage keys across the deployed static FaithHub pages and the secondary React implementation, including reflections, notes, prayer cards, saved links, appearance, and podcast selection.
+- **[Backup centre](backup.html):** audited inventory of 14 browser storage keys across the deployed static FaithHub pages and the secondary React implementation, including reflections, Cornerstone study reflections, notes, prayer cards, saved links, private Drive audio metadata, appearance, and podcast selection.
 - Download a versioned JSON backup with explicit action. The file is **unencrypted** and may contain sensitive content; keep it private. Export refuses to claim completeness when unknown FaithHub keys exist.
 - Restore missing data without overwriting it (default), or explicitly opt in to replacing matching values with confirmation. Validate backup type, contents and size before writing. Attempt to roll back completed writes on storage failure; provide a clear warning if rollback fails. Restores never remove keys absent from the file.
 - Browser storage is origin-specific. This is not server sync, Gmail/Drive recovery, cross-device merging or encryption. Test: `node --test scripts/*.test.mjs` and `node scripts/backup-centre-browser.mjs` while serving the static root.

@@ -158,7 +158,16 @@ footer { display: flex; justify-content: space-between; gap: 12px; color: #675c5
   .card, .posture-card, .toolbar, footer { border-radius: 22px; padding: 16px; }
   .toolbar { padding: 10px; }
   .tabs button, .date-tools button, input { width: 100%; }
+  .stillness-actions button, .consent-actions button { width: 100%; }
 }
+
+.presence-row { display: flex !important; align-items: flex-start; gap: 10px; margin: 12px 0 4px !important; font-weight: 600 !important; font-size: .9rem; cursor: pointer; }
+.presence-row input { width: 20px; height: 20px; padding: 0; margin-top: 2px; flex: none; }
+.stillness-actions, .consent-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.stillness-box { border: 1px solid rgba(96, 76, 49, 0.22); border-radius: 18px; padding: 16px; margin-top: 12px; background: rgba(255, 255, 255, 0.72); }
+.stillness-time { font-size: 1.75rem; font-weight: 800; letter-spacing: 0.04em; margin: 6px 0; color: #2b241e; }
+.consent-banner { border-left: 4px solid #8b5e25; padding: 8px 12px; margin: 8px 0 12px; font-size: 0.92rem; }
+.optional-sabbath summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
 
 
 /* Optional Sanctuary appearance: scoped so Original remains unchanged. */
