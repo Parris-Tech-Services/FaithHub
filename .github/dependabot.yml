@@ -1,0 +1,11 @@
+# Reviewable security maintenance; never merges or deploys automatically.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: tuesday
+      time: "09:00"
+      timezone: Australia/Sydney
+    open-pull-requests-limit: 3
