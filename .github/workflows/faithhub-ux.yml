@@ -52,7 +52,7 @@ jobs:
           node scripts/cornerstone-browser.mjs
       - name: Store the 390px mobile verification screenshot
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: faithhub-mobile-ux-390px
           path: test-results/faithhub-mobile-390.png
