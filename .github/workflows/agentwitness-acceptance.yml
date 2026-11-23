@@ -20,11 +20,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout the exact FaithHub commit being evaluated
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Checkout pinned AgentWitness code (unprivileged, test-only)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Parris-Tech-Services/AgentCheck
           ref: 97bc547bb996ceee26570a60376d6ae4df9a3187
